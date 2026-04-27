@@ -56,6 +56,8 @@ public class MusicPlayer : MonoBehaviour
         _fadeCoroutine = StartCoroutine(PlayWithFadeIn(fadeInDuration));
     }
 
+
+
     private IEnumerator PlayWithFadeIn(float duration)
     {
         float targetVolume = _targetMusicVolume * _currentRelativeVolume;
@@ -73,6 +75,21 @@ public class MusicPlayer : MonoBehaviour
 
         _musicSource.volume = targetVolume;
         _fadeCoroutine = null;
+    }
+
+    // ─── SFX / OneShot ────────────────────────────────────────────────────────
+
+    public void PlayOneShot(AudioClip clip, float volumeScale = 1f)
+    {
+        if (clip == null) return;
+
+        if (_fadeCoroutine != null)
+            StopCoroutine(_fadeCoroutine);
+
+        _musicSource.clip = clip;
+        _musicSource.volume = volumeScale;
+        _musicSource.loop = false;
+        _musicSource.Play();
     }
 
     // ─── Volume ───────────────────────────────────────────────────────────────
