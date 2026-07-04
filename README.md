@@ -1,5 +1,10 @@
 # PROJECT NAME
 One-line pitch of what this project does or what problem it solves.
+
+<p align="center">
+  <img src="./.github/thumbnail.png" width="100%" alt="PROJECT NAME banner" />
+</p>
+
 <br>
 <p align="left">
   <img src="https://img.shields.io/badge/UNITY-fed001?style=for-the-badge&logo=unity&logoColor=2d2d2d" />
