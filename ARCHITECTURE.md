@@ -45,10 +45,6 @@ No numeric prefix here unlike root — only 6 folders and no alphabetical
 collision that actually disrupts the workflow, so there's no real problem
 that prefixing would solve.
 
-Namespaces: `Slafurry.Core.Interface`, `Slafurry.Core.Abstract`,
-`Slafurry.System`, `Slafurry.Manager`, `Slafurry.Game`, `Slafurry.UI`,
-`Slafurry.Utils.GameFeel`.
-
 ### Where does this script go?
 Check its base class:
 - `GameSystem<T>` → `System/`
@@ -160,8 +156,8 @@ Enemy (root)
   (`VolumeSliderUI` in `UI/`).
 - `MusicPlayer` / `SFXPlayer` — NOT standalone singletons, accessed via
   `AudioSystem.Music` / `AudioSystem.SFX` (static shortcut properties).
-- `MusicLibrary` / `SFXLibrary` — `ScriptableObject`, pure data.
-  `SFXLibrary` is categorized by domain (`Player`, `Enemy`, `UI`), each
+- `MusicData` / `SFXData` — `ScriptableObject`, pure data.
+  `SFXData` is categorized by domain (`Player`, `Enemy`, `UI`), each
   category gets its own `AudioSource` pool so one category's SFX can't be
   "stolen" by another category that's currently busy.
 - `MusicPlayer` subscribes to `SceneLoader.OnSceneLoadCompleted` (not
