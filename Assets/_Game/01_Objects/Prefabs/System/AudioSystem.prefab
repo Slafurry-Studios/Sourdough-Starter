@@ -45,7 +45,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 4ace2740ad9c01b3e8dfd2889fe2e10f, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  musicData: {fileID: 0}
+  musicData: {fileID: 11400000, guid: b8d9925690fcb3f0ba9300fbd7ae1a52, type: 2}
   musicSource: {fileID: 4414987603231298237}
   sceneTracks: []
 --- !u!82 &4414987603231298237
@@ -305,5 +305,5 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: e6098e7656afbc8e0966bc109d89b759, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  sfxData: {fileID: 0}
+  sfxData: {fileID: 11400000, guid: 0ed9ce023e7d9eca0baab0378adc8fe9, type: 2}
   sfxMixerGroup: {fileID: 24300002, guid: 0e3a951297b6c61c6b1fdafc24be5d90, type: 2}
