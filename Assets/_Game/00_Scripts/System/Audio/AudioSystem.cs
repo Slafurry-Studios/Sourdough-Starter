@@ -1,42 +1,87 @@
+using System;
 using System.Collections;
-using Slafurry.Core.Abstract;
 using UnityEngine;
+using UnityEngine.Audio;
+using UnityEngine.SceneManagement;
+using Slafurry.Core.Abstract;
 
-/// <summary>
-/// Contoh System - layanan generik lintas-scene. Portable antar project.
-/// </summary>
-public class AudioSystem : GameSystem<AudioSystem>
+namespace Slafurry.System.Audio
 {
-    [SerializeField] private AudioSource sfxSource;
-    [SerializeField] private AudioSource musicSource;
-
-    protected override void OnSingletonAwake()
+    public static class Audio
     {
-        base.OnSingletonAwake(); // DontDestroyOnLoad
+        public static void PlayMusic(string trackName, float fade = 0.5f) => AudioSystem.Music.PlayMusic(trackName, fade);
+        public static void PlaySFX2D(string category, string effect) => AudioSystem.SFX.PlaySFX2D(category, effect);
+        public static void PlaySFX3D(string category, string effect, Vector3 pos) => AudioSystem.SFX.PlaySFX3D(category, effect, pos);
     }
-
-    public override IEnumerator Initialize()
+    
+    public class AudioSystem : GameSystem<AudioSystem>
     {
-        // contoh: load audio mixer / preload clip penting
-        yield return null;
-    }
+        [Header("Mixer")]
+        [SerializeField] private AudioMixer audioMixer;
 
-    public override void PostInitialize()
-    {
-        // subscribe event global kalau perlu, misal GameManager.Instance.OnGameOver += ...
-    }
+        [Header("Sub Players")]
+        [SerializeField] private MusicPlayer musicPlayer;
+        [SerializeField] private SFXPlayer sfxPlayer;
 
-    public void PlaySFX(AudioClip clip)
-    {
-        if (clip == null) return;
-        sfxSource.PlayOneShot(clip);
-    }
+        public static MusicPlayer Music => Instance.musicPlayer;
+        public static SFXPlayer SFX => Instance.sfxPlayer;
 
-    public void PlayMusic(AudioClip clip, bool loop = true)
-    {
-        if (clip == null) return;
-        musicSource.clip = clip;
-        musicSource.loop = loop;
-        musicSource.Play();
+        public event Action<float> OnMusicVolumeChanged;
+        public event Action<float> OnSFXVolumeChanged;
+
+        private const string MusicKey = "MusicVolume";
+        private const string SFXKey = "SFXVolume";
+
+        // ======================== GAME SYSTEM LIFECYCLE ========================
+        public override IEnumerator Initialize()
+        {
+            LoadVolume();
+            yield return new WaitForSecondsRealtime(0.1f);
+        }
+
+        public override void PostInitialize()
+        {
+            UpdateMusicVolume(PlayerPrefs.GetFloat(MusicKey, 1f));
+            UpdateSFXVolume(PlayerPrefs.GetFloat(SFXKey, 1f));
+            PlaySceneMusic();
+        }
+
+        // ======================== VOLUME LOADER ========================
+        public void LoadVolume()
+        {
+            // dibaca disini, di-apply nyata pas PostInitialize() lewat UpdateMusicVolume/UpdateSFXVolume
+            // biar gak dobel nulis ke PlayerPrefs
+        }
+
+        // ======================== PUBLIC API ========================
+        public void PlaySceneMusic()
+        {
+            string currentSceneName = SceneManager.GetActiveScene().name;
+            musicPlayer.PlayMusic(currentSceneName);
+        }
+
+        // ======================== VOLUME CHANGER ========================
+        public void UpdateMusicVolume(float linearVolume)
+        {
+            audioMixer.SetFloat(MusicKey, LinearToDecibel(linearVolume));
+            PlayerPrefs.SetFloat(MusicKey, linearVolume);
+            OnMusicVolumeChanged?.Invoke(linearVolume);
+        }
+
+        public void UpdateSFXVolume(float linearVolume)
+        {
+            audioMixer.SetFloat(SFXKey, LinearToDecibel(linearVolume));
+            PlayerPrefs.SetFloat(SFXKey, linearVolume);
+            OnSFXVolumeChanged?.Invoke(linearVolume);
+        }
+
+        private float LinearToDecibel(float linear)
+            => linear > 0.0001f ? Mathf.Log10(linear) * 20f : -80f;
+
+        protected override void OnSingletonAwake()
+        {
+            base.OnSingletonAwake();
+        }
     }
 }
+
