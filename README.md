@@ -7,9 +7,9 @@ One-line pitch of what this project does or what problem it solves.
 
 <br>
 <p align="left">
-  <img src="https://img.shields.io/badge/UNITY-fed001?style=for-the-badge&logo=unity&logoColor=2d2d2d" />
-  <img src="https://img.shields.io/badge/STATUS • IN DEVELOPMENT-2d2d2d?style=for-the-badge&logo=git&logoColor=fed001" />
-  <img src="https://img.shields.io/badge/LICENSE • MIT-2d2d2d?style=for-the-badge&logo=open-source-initiative&logoColor=fed001" />
+  <img src="https://img.shields.io/badge/UNITY-ffffff?style=for-the-badge&logo=unity&logoColor=000000" />
+  <img src="https://img.shields.io/badge/STATUS • IN DEVELOPMENT-000000?style=for-the-badge&logo=git&logoColor=ffffff" />
+  <img src="https://img.shields.io/badge/MADE BY SLAFURRY STUDIOS-ffffff?style=for-the-badge&logo=gamepad&logoColor=000000" />
 </p>
 
 ---
@@ -66,20 +66,24 @@ Open the project in Unity Hub, let it import, then open the `Boot` scene to star
 ---
 
 ## TECH STACK
-![Unity](https://img.shields.io/badge/Unity-2d2d2d?style=flat-square&logo=unity&logoColor=fed001)
-![C#](https://img.shields.io/badge/C%23-2d2d2d?style=flat-square&logo=csharp&logoColor=fed001)
-![Cinemachine](https://img.shields.io/badge/Cinemachine-2d2d2d?style=flat-square&logo=unity&logoColor=fed001)
-![Newtonsoft.Json](https://img.shields.io/badge/Newtonsoft.Json-2d2d2d?style=flat-square&logo=json&logoColor=fed001)
+![Unity](https://img.shields.io/badge/Unity-000000?style=flat-square&logo=unity&logoColor=ffffff)
+![C#](https://img.shields.io/badge/C%23-000000?style=flat-square&logo=csharp&logoColor=ffffff)
+![Cinemachine](https://img.shields.io/badge/Cinemachine-000000?style=flat-square&logo=unity&logoColor=ffffff)
+![Newtonsoft.Json](https://img.shields.io/badge/Newtonsoft.Json-000000?style=flat-square&logo=json&logoColor=ffffff)
 
 ---
 
-## CREDITS
-**Team / Studio:** Slafurry
-**Roles:** [Role — Name], [Role — Name]
+## TEAM
+| Role | Name |
+|---|---|
+| [Role] | [Name] |
+| [Role] | [Name] |
 
 ---
 
 ## CONNECT
-[![Portfolio](https://img.shields.io/badge/Portfolio-fed001?style=for-the-badge&logo=google-chrome&logoColor=1a1a00)](https://zaini-portofolio.vercel.app/)
-[![Itch.io](https://img.shields.io/badge/ITCH.IO-2d2d2d?style=for-the-badge&logo=itch.io&logoColor=fed001)](https://lordzaini.itch.io/)
-[![Email](https://img.shields.io/badge/Email-2d2d2d?style=for-the-badge&logo=gmail&logoColor=fed001)](mailto:gamerlemah15@gmail.com)
+<p align="left">
+  <a href="https://github.com/Slafurry-Studios"><img src="https://img.shields.io/badge/GITHUB-ffffff?style=for-the-badge&logo=github&logoColor=000000" /></a>
+  <a href="https://www.linkedin.com/company/slafurry-studios/"><img src="https://img.shields.io/badge/LINKEDIN-000000?style=for-the-badge&logo=linkedin&logoColor=ffffff" /></a>
+  <a href="https://slafurrystudios.itch.io/"><img src="https://img.shields.io/badge/ITCH.IO-ffffff?style=for-the-badge&logo=itch.io&logoColor=000000" /></a>
+</p>
