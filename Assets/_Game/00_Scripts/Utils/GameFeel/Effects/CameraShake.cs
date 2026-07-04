@@ -1,9 +1,9 @@
 using UnityEngine;
 using Cinemachine;
 
-namespace Slafurry.Utils.Gamefeel
+namespace Slafurry.Utils.GameFeel
 {
-    public class CameraShake : MonoBehaviour, IGamefeelEffect
+    public class CameraShake : MonoBehaviour, IGameFeelEffect
 
     {
 

@@ -1,8 +1,8 @@
 using UnityEngine;
 
-namespace Slafurry.Utils.Gamefeel
+namespace Slafurry.Utils.GameFeel
 {
-    public class ObjectShaker : MonoBehaviour, IGamefeelEffect
+    public class ObjectShake : MonoBehaviour, IGameFeelEffect
     {
         [Header("Jitter Settings")]
         [SerializeField] private float duration = 0.2f;

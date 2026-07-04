@@ -1,9 +1,9 @@
 using UnityEngine;
 using System.Collections;
 
-namespace Slafurry.Utils.Gamefeel
+namespace Slafurry.Utils.GameFeel
 {
-    public class SquashOnHit : MonoBehaviour, IGamefeelEffect
+    public class SquashOnHit : MonoBehaviour, IGameFeelEffect
     {
         [SerializeField] private float squashX = 1.3f;
         [SerializeField] private float squashY = 0.7f;

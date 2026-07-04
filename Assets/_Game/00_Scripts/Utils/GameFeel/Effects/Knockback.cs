@@ -1,6 +1,6 @@
 using UnityEngine;
 
-namespace Slafurry.Utils.Gamefeel
+namespace Slafurry.Utils.GameFeel
 {
     /// <summary>
     /// Pushes the entity away on hit. Works with either Rigidbody or
@@ -9,7 +9,7 @@ namespace Slafurry.Utils.Gamefeel
     /// (e.g. from the code that detected the hit) before PlayEffect().
     /// If no direction was set, falls back to pushing back along -transform.forward.
     /// </summary>
-    public class Knockback : MonoBehaviour, IGamefeelEffect
+    public class Knockback : MonoBehaviour, IGameFeelEffect
     {
         [SerializeField] private float force = 5f;
         [SerializeField] private ForceMode forceMode = ForceMode.Impulse;

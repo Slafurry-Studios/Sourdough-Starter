@@ -1,9 +1,9 @@
 using System.Collections.Generic;
 using UnityEngine;
 
-namespace Slafurry.Utils.Gamefeel
+namespace Slafurry.Utils.GameFeel
 {
-    public class HitBlinker : MonoBehaviour, IGamefeelEffect
+    public class HitBlink : MonoBehaviour, IGameFeelEffect
     {
         [Header("Blink Settings")]
         [Tooltip("The color to blink to when hit (e.g. solid white or red).")]

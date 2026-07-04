@@ -2,9 +2,9 @@ using System.Collections;
 using Slafurry.System.Pause;
 using UnityEngine;
 
-namespace Slafurry.Utils.Gamefeel
+namespace Slafurry.Utils.GameFeel
 {
-    public class HitStop : MonoBehaviour, IGamefeelEffect
+    public class HitStop : MonoBehaviour, IGameFeelEffect
     {
         private bool isHitStopping;
         private float defaultDuration = 0.1f;

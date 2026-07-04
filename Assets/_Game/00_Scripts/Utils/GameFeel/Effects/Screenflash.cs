@@ -3,7 +3,7 @@ using UnityEngine;
 using UnityEngine.UI;
 using Slafurry.Core.Abstract;
 
-namespace Slafurry.Utils.Gamefeel
+namespace Slafurry.Utils.GameFeel
 {
     /// <summary>
     /// Full-screen color overlay flash (e.g. red flash on taking damage).
@@ -12,7 +12,7 @@ namespace Slafurry.Utils.Gamefeel
     /// use SetColor()/SetDuration() before PlayEffect() if you need a
     /// different flash color for a specific call (e.g. heal = green flash).
     /// </summary>
-    public class ScreenFlash : LocalSingleton<ScreenFlash>, IGamefeelEffect
+    public class ScreenFlash : LocalSingleton<ScreenFlash>, IGameFeelEffect
     {
         [SerializeField] private Image overlayImage;
         [SerializeField] private Color color = new Color(1f, 0f, 0f, 0.4f);
