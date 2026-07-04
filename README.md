@@ -2,7 +2,7 @@
 One-line pitch of what this project does or what problem it solves.
 
 <p align="center">
-  <img src="https://github.com/user-attachments/assets/44a7ca80-42f8-4d11-a05f-b3fc5e552f52" width="100%" alt="PROJECT NAME banner" />
+  <img src="https://github.com/user-attachments/assets/9dee6058-b82a-43b4-ae26-eab6ffe699da" width="100%" alt="PROJECT NAME banner" />
 </p>
 
 
