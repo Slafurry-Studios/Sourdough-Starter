@@ -1,10 +1,13 @@
+using Slafurry.Core.Interface;
+using Slafurry.Utils.Attributes;
 using UnityEngine;
 
 namespace Slafurry.System.Audio
 {
 
-    
-    [CreateAssetMenu(fileName = "SFX Data", menuName = "Game/Audio/SFX Data")]
+
+    [GameAssetCreator("Audio/SFX", "SFX Data", order: 1)]
+
     public class SFXData : ScriptableObject
     {
         public SFXCategory[] categories;
@@ -18,6 +21,9 @@ namespace Slafurry.System.Audio
             }
             return null;
         }
+
+        public string GetDropdownLabel() => $"{name}";
+
 
         public SFXEffect GetSFXEffect(string categoryName, string effectName)
         {

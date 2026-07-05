@@ -57,13 +57,16 @@ namespace Slafurry.System.Audio
                 if (!source.isPlaying)
                 {
                     pool.Playing.Remove(source);
+                    source.loop = false;
                     return source;
                 }
             }
 
             AudioSource stolen = pool.Sources[pool.OldestIndex];
             stolen.Stop();
+            stolen.loop = false;
             pool.Playing.Remove(stolen);
+
             pool.OldestIndex = (pool.OldestIndex + 1) % pool.Sources.Length;
 
             return stolen;
@@ -87,7 +90,7 @@ namespace Slafurry.System.Audio
         }
 
         // ========================= 3D =========================
-        public void PlaySFX3D(string categoryName, string effectName, Vector3 pos)
+        public void PlaySFX3D(string categoryName, string effectName, Vector3 pos, bool loop = false)
         {
             if (!TryPrepare(categoryName, effectName, out var pool, out var effect, out var clip))
                 return;
@@ -95,6 +98,7 @@ namespace Slafurry.System.Audio
             AudioSource source = GetAvailableSource(pool);
             source.transform.position = pos;
             source.spatialBlend = 1f;
+            source.loop = loop;
             source.clip = clip;
             source.volume = effect.volume;
             pool.Playing[source] = effectName;
@@ -102,7 +106,7 @@ namespace Slafurry.System.Audio
         }
 
         // ========================= 2D =========================
-        public void PlaySFX2D(string categoryName, string effectName)
+        public void PlaySFX2D(string categoryName, string effectName, bool loop = false)
         {
             if (!TryPrepare(categoryName, effectName, out var pool, out var effect, out var clip))
                 return;
@@ -110,10 +114,57 @@ namespace Slafurry.System.Audio
             AudioSource source = GetAvailableSource(pool);
             source.transform.position = Vector3.zero;
             source.spatialBlend = 0f;
+            source.loop = loop;
             source.clip = clip;
             source.volume = effect.volume;
             pool.Playing[source] = effectName;
             source.Play();
+        }
+
+        // ========================= STOP =========================
+        public void StopAllSFX()
+        {
+            foreach (var pool in _pools.Values)
+            {
+                foreach (var source in pool.Sources)
+                {
+                    source.Stop();
+                }
+
+                pool.Playing.Clear();
+            }
+        }
+
+        public void StopCategory(string categoryName)
+        {
+            if (!_pools.TryGetValue(categoryName, out var pool))
+                return;
+
+            foreach (var source in pool.Sources)
+            {
+                source.Stop();
+            }
+
+            pool.Playing.Clear();
+        }
+
+        public void StopSFX(string categoryName, string effectName)
+        {
+            if (!_pools.TryGetValue(categoryName, out var pool))
+                return;
+
+            foreach (var source in pool.Sources)
+            {
+                if (!source.isPlaying)
+                    continue;
+
+                if (pool.Playing.TryGetValue(source, out string currentName) &&
+                    currentName == effectName)
+                {
+                    source.Stop();
+                    pool.Playing.Remove(source);
+                }
+            }
         }
 
         // ========================= Shared lookup =========================
