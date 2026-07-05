@@ -10,10 +10,18 @@ namespace Slafurry.System.Audio
     public static class Audio
     {
         public static void PlayMusic(string trackName, float fade = 0.5f) => AudioSystem.Music.PlayMusic(trackName, fade);
-        public static void PlaySFX2D(string category, string effect) => AudioSystem.SFX.PlaySFX2D(category, effect);
-        public static void PlaySFX3D(string category, string effect, Vector3 pos) => AudioSystem.SFX.PlaySFX3D(category, effect, pos);
+        public static void StopMusic(float fade = 0.5f) => AudioSystem.Music.StopMusic(fade);
+        public static void PlaySFX2D(string category, string effect, bool loop = false)
+            => AudioSystem.SFX.PlaySFX2D(category, effect, loop);
+
+        public static void PlaySFX3D(string category, string effect, Vector3 pos, bool loop = false)
+            => AudioSystem.SFX.PlaySFX3D(category, effect, pos, loop);
+
+        public static void StopSFX() => AudioSystem.SFX.StopAllSFX();
+        public static void StopSFX(string category) => AudioSystem.SFX.StopCategory(category);
+        public static void StopSFX(string category, string effect) => AudioSystem.SFX.StopSFX(category, effect);
     }
-    
+
     public class AudioSystem : GameSystem<AudioSystem>
     {
         [Header("Mixer")]
