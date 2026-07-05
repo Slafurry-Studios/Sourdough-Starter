@@ -3,7 +3,7 @@ using UnityEngine;
 
 namespace Slafurry.Utils.GameFeel
 {
-    public class HitBlink : MonoBehaviour, IGameFeelEffect
+    public class Blink : MonoBehaviour, IGameFeelEffect
     {
         [Header("Blink Settings")]
         [Tooltip("The color to blink to when hit (e.g. solid white or red).")]
