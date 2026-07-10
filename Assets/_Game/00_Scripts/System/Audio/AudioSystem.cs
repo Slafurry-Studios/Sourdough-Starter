@@ -36,7 +36,7 @@ namespace Slafurry.System.Audio
 
         public event Action<float> OnMusicVolumeChanged;
         public event Action<float> OnSFXVolumeChanged;
-z
+
         private const string MusicKey = "MusicVolume";
         private const string SFXKey = "SFXVolume";
 
