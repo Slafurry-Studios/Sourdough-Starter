@@ -6,7 +6,7 @@ using Slafurry.Core.Abstract;
 
 namespace Slafurry.System.Scene
 {
-    public static class Scene
+    public static class SceneSystem
     {
         public static void Load(string sceneName) => SceneLoader.Instance.LoadScene(sceneName);
     }

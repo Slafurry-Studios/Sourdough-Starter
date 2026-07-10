@@ -5,8 +5,22 @@ using Slafurry.Core.Abstract;
 using Slafurry.Utils.Pooling;
 using Slafurry.Utils.VFX;
 
+
 namespace Slafurry.System.VFX
 {
+    public static class VFX
+    {
+        public static void Play(string key, Vector3 position)
+        {
+            VFXSystem.Instance.Play(key, position);
+        }
+
+        public static void Play(string key, Vector3 position, Quaternion rotation)
+        {
+            VFXSystem.Instance.Play(key, position, rotation);
+        }
+        
+    }
     public class VFXSystem : GameSystem<VFXSystem>
     {
         [SerializeField] private VFXEntry[] vfxEntries;
@@ -32,7 +46,7 @@ namespace Slafurry.System.VFX
                 return null;
             }
 
-            var instance = pool.Get();
+            VFXCleaner instance = pool.Get();
             instance.transform.SetPositionAndRotation(position, rotation);
             instance.SetPool(pool);
             return instance;
