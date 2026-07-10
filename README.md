@@ -19,6 +19,13 @@ Short paragraph explaining the project's purpose, scope, and what makes it worth
 
 ---
 
+## PLAY IT ON
+<p align="left">
+  <a href="https://lordzaini.itch.io/"><img src="https://img.shields.io/badge/ITCH.IO-ffffff?style=for-the-badge&logo=itch.io&logoColor=000000" /></a>
+</p>
+
+---
+
 ## FEATURES
 - Feature one, described in a single clear line
 - Feature two
