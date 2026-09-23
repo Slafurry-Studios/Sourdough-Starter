@@ -48,7 +48,7 @@ Assets/_Game/
 │   └── Utils/      — generic reusable helpers (GameFeel, extensions)
 ├── 01_Objects/     — prefabs & data, grouped by domain
 ├── 03_Audio/       — GameAudioMixer + Music/SFX (Drive-synced clips)
-├── 04_Scenes/      — TemplateScene.unity (in Build Settings)
+├── 04_Scenes/      — Boot.unity (in Build Settings)
 └── 05_Settings/    — URP, Input
 ```
 
@@ -69,7 +69,7 @@ git clone https://github.com/muhammadzaini213/Sourdough-Starter.git
 cd Sourdough-Starter
 git config core.hooksPath .githooks   # LFS + pre-push Unity compile check
 ```
-Open the project in Unity Hub, let it import, then open `Assets/_Game/04_Scenes/TemplateScene.unity`.
+Open the project in Unity Hub, let it import, then open `Assets/_Game/04_Scenes/Boot.unity`.
 
 ---
 

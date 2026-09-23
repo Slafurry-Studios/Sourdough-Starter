@@ -5,7 +5,7 @@ Unity **2022.3.62f3** URP starter (C#). Verify C# with `./scripts/check-compile.
 ## Sources of truth
 
 - **`ARCHITECTURE.md`** — folder rules, base classes, lifecycle, naming (System vs Manager vs Controller). Prefer this over README.
-- **`README.md`** — pitch + setup; trees use `_Game/` + `Systems/`; only scene is `TemplateScene.unity`.
+- **`README.md`** — pitch + setup; trees use `_Game/` + `Systems/`; only scene is `Boot.unity`.
 - **`GITHUB_WORKFLOWS.md`** — secrets/vars setup, run steps, deploy inputs (`platforms`/`release_type`/`release_tag`), Discord + GitHub Release changelog.
 - Executable wins over docs: `ProjectSettings/ProjectVersion.txt`, `Packages/manifest.json`, `.gitattributes`, `.github/workflows/`.
 
@@ -16,7 +16,7 @@ Assets/_Game/          # all game content
   00_Scripts/          # Core, Systems, Manager, Game, UI, Utils
   01_Objects/          # Prefabs/ + Data/ (SO variants)
   03_Audio/            # GameAudioMixer.mixer (+ Music/, SFX/ for Drive clips)
-  04_Scenes/           # TemplateScene only (in Build Settings)
+  04_Scenes/           # Boot only (in Build Settings)
   05_Settings/         # URP, Input
 Assets/Editor/         # BuildScript.cs (CI -executeMethod) + GameAssetCreator
 Assets/_Vendor/        # third-party — do not edit
@@ -33,7 +33,7 @@ retrieve.py, track.py, core/, state/, requirements.txt  # Drive → assets tooli
 
 ## Boot / lifecycle (easy to get wrong)
 
-- `Singleton`/`Manager` `Awake` is sealed and auto-calls `LoadingSystem.Instance.Register(this)`. **`LoadingSystem` must exist first** — on `AudioSystem.prefab`, the **AudioSystem** GameObject's first component after Transform (script GUID `2ba4b0833086a19a0b6ff4653a00344a`). Do not remove it.
+- `Singleton`/`Manager` `Awake` is sealed and auto-calls `LoadingSystem.Instance.Register(this)`. **`LoadingSystem` must exist first** — in the only scene (`Assets/_Game/04_Scenes/Boot.unity`) it sits on its own **`====== LOADING ======`** root GameObject (script GUID `2ba4b0833086a19a0b6ff4653a00344a`); do not remove it. New systems attach to the **`====== SYSTEM ======`** root (or their own root), alongside `SceneLoader`, `SaveSystem`, `InputHub`, `PauseSystem`, `LocalizationSystem`.
 - `Initialize()` = internal setup only (no other-object refs). Cross-object wiring only in `PostInitialize()`. Avoid `Start()` (guard with `_isReady` if unavoidable).
 - `IInitializable.Priority` orders boot (lower first). Late registrants after boot get a one-frame delayed batch (`LoadingSystem`).
 - Base class: cross-scene singleton → `GameSystem<T>`; scene-bound singleton → `LocalSingleton<T>`; session coordinator → `Manager` (registers with `GameManager` in `PostInitialize` via abstract `RegisterToGameManager`/`OnPostInitialize`).
@@ -86,7 +86,7 @@ Run steps only use `"$NAME"` — **no inline `${{ secrets.* }}`**, no hardcoded 
 - Serialization: Force Text YAML + Visible Meta Files. **Commit `.meta` with every new asset**; never hand-edit GUIDs.
 - Input System only (`activeInputHandler: 2`). Actions: `Assets/_Game/05_Settings/Input/Main Input.inputactions` → generated `Main Input.cs` (regenerate in Unity after editing actions). Legacy `Input.GetKeyDown` in `DIalogHUD` is dead code.
 - Editor menu: **Slafurry → Game Data** (GameAssetCreator). Types for that window use `[GameAssetCreator(category, displayName, order)]`; other SOs use `[CreateAssetMenu]`.
-- `EditorBuildSettings` lists only `TemplateScene` (enabled). Do not assume other scenes are loadable.
+- `EditorBuildSettings` lists only `Boot` (enabled). Do not assume other scenes are loadable.
 - **Drive bots re-sync from `origin/main` every run**: `retrieve.yml` `rm -rf`s `state/`, `Assets/_Game/02_Art/Sprite`, `Assets/_Game/03_Audio` then restores via `git archive origin/main`. Commit `GameAudioMixer.mixer` (and local state) to `main` before relying on those workflows.
 - **`track` / `retrieve` commit `state/` to `main`** (`[skip ci]`) so `deleted_in_drive` / `retrieve_status` / `downloaded_*` persist. Assets still go `chore/asset` → PR. `core/state.py` must keep retrieve fields when track merges a fresh listing (`scripts/test_state.py`).
 - `core.hooksPath` is **not** committed (local `git config`). Each clone: `git config core.hooksPath .githooks` or pre-push compile will not run; LFS chains via `.githooks/pre-push`.
@@ -107,4 +107,4 @@ Run steps only use `"$NAME"` — **no inline `${{ secrets.* }}`**, no hardcoded 
   -projectPath "$PWD" -logFile /tmp/unity-compile.log
 ```
 
-Prefer this (or opening the Editor) after any C# change. Play-mode behavior still needs a manual Editor run (`TemplateScene`).
+Prefer this (or opening the Editor) after any C# change. Play-mode behavior still needs a manual Editor run (`Boot`).

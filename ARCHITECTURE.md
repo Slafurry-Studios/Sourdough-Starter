@@ -12,7 +12,7 @@ Assets/_Game/           # all game content lives here (not Assets/ root)
 ├── 00_Scripts/         # all C# (see below)
 ├── 01_Objects/         # prefabs & ScriptableObjects, grouped by domain
 ├── 03_Audio/           # GameAudioMixer.mixer + Music/SFX (Drive-synced clips)
-├── 04_Scenes/          # TemplateScene.unity (in Build Settings)
+├── 04_Scenes/          # Boot.unity (in Build Settings)
 └── 05_Settings/        # URP, Input System
 ```
 Numeric prefixes are used at root level because several root folders get
