@@ -21,12 +21,15 @@ env:
   DRIVE_AUDIO_FOLDER_ID: ${{ vars.DRIVE_AUDIO_FOLDER_ID }}
   BOT_GIT_USERNAME: ${{ vars.BOT_GIT_USERNAME || 'Kozeki Ui' }}
   BOT_GIT_EMAIL: ${{ vars.BOT_GIT_EMAIL || '45u35+kozeki-ui[bot]@users.noreply.github.com' }}
+  UNITY_PROJECT_PATH: ${{ vars.UNITY_PROJECT_PATH || '.' }}
 
   # Credentials (Settings → Secrets and variables → Actions → Secrets)
   GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
   GOOGLE_SERVICE_ACCOUNT_JSON_B64: ${{ secrets.GOOGLE_SERVICE_ACCOUNT_JSON_B64 }}
   DISCORD_WEBHOOK_URL: ${{ secrets.DISCORD_WEBHOOK_URL }}
   GH_TOKEN: ${{ secrets.PR_PAT || secrets.GITHUB_TOKEN }}
+  UNITY_EMAIL: ${{ secrets.UNITY_EMAIL }}
+  UNITY_PASSWORD: ${{ secrets.UNITY_PASSWORD }}
 
 jobs:
   retrieve:
@@ -81,6 +84,44 @@ jobs:
             --download-dir "Assets/_Game/03_Audio" \
             --project-name "$GITHUB_REPOSITORY (audio)" \
             --discord-webhook "$DISCORD_WEBHOOK_URL"
+
+      # Unity generates .meta files for the newly downloaded assets (stable GUIDs +
+      # import settings) so they are committed together with the Drive files.
+      - name: Setup Unity
+        uses: buildalon/unity-setup@v2
+        with:
+          version-file: ${{ env.UNITY_PROJECT_PATH }}/ProjectSettings/ProjectVersion.txt
+
+      - name: Activate Unity license
+        uses: buildalon/activate-unity-license@v2
+        with:
+          license: Personal
+          username: ${{ secrets.UNITY_EMAIL }}
+          password: ${{ secrets.UNITY_PASSWORD }}
+
+      - name: Generate .meta files (Unity import)
+        shell: bash
+        run: |
+          set -e
+
+          "$UNITY_EDITOR_PATH" \
+            -batchmode -nographics -quit \
+            -projectPath "$UNITY_PROJECT_PATH" \
+            -logFile "$GITHUB_WORKSPACE/unity-import.log" || {
+              echo "Unity import failed. Tail of log:"
+              tail -200 "$GITHUB_WORKSPACE/unity-import.log" || true
+              exit 1
+            }
+
+          # Should be no errors for our own content; surface any error CS lines.
+          grep -n -E "error CS" "$GITHUB_WORKSPACE/unity-import.log" && {
+            echo "Early compile errors detected."
+            exit 1
+          } || true
+
+          echo "Unity import done. Generated .meta files:"
+          git status --short Assets/_Game/02_Art/Sprite Assets/_Game/03_Audio \
+            | grep '\.meta$' | head -50 || true
 
       # Persist retrieve bookkeeping (retrieve_status / downloaded_*) on main immediately.
       # Assets still go through chore/asset → PR; state alone must not wait on a merge

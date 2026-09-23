@@ -64,13 +64,16 @@ env:
   GOOGLE_SERVICE_ACCOUNT_JSON_B64: ${{ secrets.GOOGLE_SERVICE_ACCOUNT_JSON_B64 }}
   DISCORD_WEBHOOK_URL: ${{ secrets.DISCORD_WEBHOOK_URL }}
   GH_TOKEN: ${{ secrets.PR_PAT || secrets.GITHUB_TOKEN }}  # retrieve only
+  UNITY_EMAIL / UNITY_PASSWORD                            # retrieve uses them too (meta import)
 ```
 
 Run steps only use `"$NAME"` — **no inline `${{ secrets.* }}`**, no hardcoded values.
 
-**Secrets** (credentials only): `GEMINI_API_KEY`, `GOOGLE_SERVICE_ACCOUNT_JSON_B64`, `DISCORD_WEBHOOK_URL`, `DISCORD_WEBHOOK_URL_DEPLOY`, `UNITY_EMAIL`, `UNITY_PASSWORD`, `BUTLER_API_KEY`, `PR_PAT`.
+**Secrets** (credentials only): `GEMINI_API_KEY`, `GOOGLE_SERVICE_ACCOUNT_JSON_B64`, `DISCORD_WEBHOOK_URL`, `DISCORD_WEBHOOK_URL_DEPLOY`, `UNITY_EMAIL`, `UNITY_PASSWORD`, `BUTLER_API_KEY`, `PR_PAT` (compile, deploy, **retrieve**).
 
-**Variables** (non-credential): `DRIVE_SPRITE_FOLDER_ID`, `DRIVE_AUDIO_FOLDER_ID`, `GEMINI_MODEL`, `GEMINI_PERSONA`, `GEMINI_LANGUAGE`, `BOT_GIT_USERNAME`, `BOT_GIT_EMAIL`, `ITCH_*`, `GAME_DISPLAY_NAME`, `UNITY_PROJECT_PATH`.
+**Variables** (non-credential): `DRIVE_SPRITE_FOLDER_ID`, `DRIVE_AUDIO_FOLDER_ID`, `GEMINI_MODEL`, `GEMINI_PERSONA`, `GEMINI_LANGUAGE`, `BOT_GIT_USERNAME`, `BOT_GIT_EMAIL`, `ITCH_*`, `GAME_DISPLAY_NAME`, `UNITY_PROJECT_PATH` (deploy, retrieve).
+
+**Retrieve runs a Unity batchmode import after downloading** so new Drive files get generated `.meta` (stable GUID + import settings) — committed inside the asset PR. Requires `UNITY_EMAIL`/`UNITY_PASSWORD` on `retrieve` now.
 
 **Deploy notify** builds a changelog (`git log` since last tag, else `HEAD~1..HEAD`) and passes it to Gemini for the Discord announcement.
 
