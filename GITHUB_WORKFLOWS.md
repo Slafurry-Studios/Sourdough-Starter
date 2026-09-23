@@ -27,8 +27,8 @@ All configuration is done under **Settings → Secrets and variables → Actions
 | `GEMINI_API_KEY` | track, retrieve, deploy | Gemini API key for asset tagging / release flavor text |
 | `DISCORD_WEBHOOK_URL` | track, retrieve | Webhook for asset-sync notifications (URL grants posting access) |
 | `DISCORD_WEBHOOK_URL_DEPLOY` | deploy | Webhook for build/deploy announcements |
-| `UNITY_EMAIL` | compile, deploy | Unity account email (Personal license activation) |
-| `UNITY_PASSWORD` | compile, deploy | Unity account password |
+| `UNITY_EMAIL` | compile, deploy, retrieve | Unity account email (Personal license activation) |
+| `UNITY_PASSWORD` | compile, deploy, retrieve | Unity account password |
 | `BUTLER_API_KEY` | deploy | itch.io butler API key ([create here](https://itch.io/user/settings/api-keys)) |
 | `PR_PAT` | retrieve | Optional. Personal access token for creating the asset PR; falls back to the default `GITHUB_TOKEN` |
 
@@ -46,7 +46,7 @@ All configuration is done under **Settings → Secrets and variables → Actions
 | `ITCH_GAME` | deploy | — | Your itch.io game URL slug (**required**) |
 | `GAME_DISPLAY_NAME` | deploy | `ITCH_GAME` | Human-readable title used in Discord posts |
 | `ITCH_CHANNEL_WINDOWS` / `ITCH_CHANNEL_MAC` / `ITCH_CHANNEL_WEBGL` | deploy | `windows` / `mac` / `html5` | itch.io channel names per platform |
-| `UNITY_PROJECT_PATH` | deploy | `.` | Path to the Unity project if it's not the repo root |
+| `UNITY_PROJECT_PATH` | deploy, retrieve | `.` | Path to the Unity project if it's not the repo root |
 
 ## Running the workflows
 
@@ -64,6 +64,7 @@ All configuration is done under **Settings → Secrets and variables → Actions
 - **PR compile gate**: require the `Batchmode compile` check in branch protection (**Settings → Branches**) so broken C# cannot merge. Docs-only PRs skip the workflow via path filters.
 - **Failure Discord**: deploy / track / retrieve each have a `notify-failure` job (`if: failure()`) that posts a Gemini-written embed to the same webhook as success (`DISCORD_WEBHOOK_URL_DEPLOY` for deploy, `DISCORD_WEBHOOK_URL` for asset bots) — matches Potkeeter.
 - **Asset flow**: `track` detects changes and **persists `state/` to `main`** (so `deleted_in_drive` / retrieve timestamps stick — otherwise Discord re-notifies the same deletes every day). `retrieve` downloads files, also **persists `state/` to `main`**, then opens a PR for **assets only** (`chore/asset` → `main`). Review and merge the asset PR to accept files. The `chore/asset` branch is recreated from `main` on every run — never push to it manually.
+- **`.meta` generation**: after downloading, `retrieve` runs a Unity batchmode import so every new Drive file gets its generated `.meta` (stable GUID + import settings). Those `.meta` files are committed in the asset PR. Requires `UNITY_EMAIL`/`UNITY_PASSWORD` (same secrets as compile/deploy).
 - Bot commits include `[skip ci]` so they don't trigger other workflows.
 - **Deploy requirements**: the project must have `Assets/Editor/BuildScript.cs` with a `BuildScript.Build` method (already present), Git LFS files checked out, and a valid Unity Personal license (`UNITY_EMAIL`/`UNITY_PASSWORD`).
 - Build artifacts are kept for 7 days on the workflow run; itch.io is the long-term host.
