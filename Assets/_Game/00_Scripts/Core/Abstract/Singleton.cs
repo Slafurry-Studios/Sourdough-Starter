@@ -1,6 +1,6 @@
 using System.Collections;
 using Slafurry.Core.Interface;
-using Slafurry.System;
+using Slafurry.Systems;
 using UnityEngine;
 
 namespace Slafurry.Core.Abstract

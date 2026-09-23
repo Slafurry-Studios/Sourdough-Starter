@@ -1,0 +1,23 @@
+#!/bin/sh
+# Git LFS pre-push (required) + local compile guard.
+# Enable once per clone: git config core.hooksPath .githooks
+# Skip compile only:     SKIP_UNITY_COMPILE=1 git push
+
+command -v git-lfs >/dev/null 2>&1 || {
+  echo >&2 "This repository is configured for Git LFS but 'git-lfs' was not found on your path."
+  exit 2
+}
+git lfs pre-push "$@" || exit $?
+
+ROOT="$(CDPATH= cd -- "$(dirname -- "$0")/.." && pwd)"
+CHECK="$ROOT/scripts/check-compile.sh"
+
+if [ -x "$CHECK" ]; then
+  "$CHECK" || {
+    echo >&2 "pre-push: compile check failed (SKIP_UNITY_COMPILE=1 to bypass locally)."
+    exit 1
+  }
+else
+  echo >&2 "pre-push: missing $CHECK — run compile check manually (see AGENTS.md)."
+  exit 1
+fi

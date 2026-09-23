@@ -8,13 +8,12 @@ structure, base classes, and reasoning behind each decision — so the team
 
 ## Root folder structure
 ```
-Assets/
-├── 00_Scripts/
-├── 01_Objects/
-├── 02_Art/
-├── 03_Audio/
-├── 04_Scenes/
-└── 05_Settings/
+Assets/_Game/           # all game content lives here (not Assets/ root)
+├── 00_Scripts/         # all C# (see below)
+├── 01_Objects/         # prefabs & ScriptableObjects, grouped by domain
+├── 03_Audio/           # GameAudioMixer.mixer + Music/SFX (Drive-synced clips)
+├── 04_Scenes/          # TemplateScene.unity (in Build Settings)
+└── 05_Settings/        # URP, Input System
 ```
 Numeric prefixes are used at root level because several root folders get
 opened back-to-back all the time (`Scenes` especially) — prefixes lock the
@@ -29,15 +28,14 @@ of widening the same level.
 
 ## `00_Scripts/` (no numeric prefix)
 ```
-Scripts/
+00_Scripts/
 ├── Core/
 │   ├── Interface/     — IInitializable, IResettable
 │   └── Abstract/      — Singleton, GameSystem, LocalSingleton, Manager
-├── System/             — GameSystem<T> subclasses, persistent cross-scene services
+├── Systems/            — GameSystem<T> subclasses, persistent cross-scene services
 ├── Manager/            — Manager subclasses, per-session gameplay coordinators
-├── Game/               — Controllers & per-instance entities, plus GameManager
-├── UI/
-│   └── Generic/        — reusable UI components (LocalizedText, etc.)
+├── Game/               — Controllers & per-instance entities (incl. Triggers/)
+├── UI/                 — reactive observers & screen coordination
 └── Utils/
     └── GameFeel/       — reusable gamefeel effects
 ```
@@ -45,13 +43,15 @@ No numeric prefix here unlike root — only 6 folders and no alphabetical
 collision that actually disrupts the workflow, so there's no real problem
 that prefixing would solve.
 
+Namespace root: `Slafurry.Systems.*` (Systems/), `Slafurry.Core.*`, `Slafurry.Utils.*`.
+
 ### Where does this script go?
 Check its base class:
-- `GameSystem<T>` → `System/`
+- `GameSystem<T>` → `Systems/`
 - `Manager` → `Manager/`
 - Plain `MonoBehaviour` / `LocalSingleton<T>` that's gameplay-specific → `Game/`
 - Reactive UI observer tied to one system → `UI/`
-- Reactive UI observer that's generic/portable across projects → `UI/Generic/`
+- Reactive UI observer that's generic/portable across projects → `UI/` (or a nested `Generic/` subfolder if it grows)
 - Generic, no dependency on game state → `Utils/`
 
 ---
@@ -74,8 +74,10 @@ Check its base class:
   but dies when the scene changes. Used for controllers/objects that are
   convenient to access via `.Instance` but must not persist into the next
   scene (e.g. `CameraShake`).
-- `Manager` — NOT a singleton, registers manually with `GameManager`. Used
-  for `...Manager` (e.g. `EnemyManager`, `UIManager`).
+- `Manager` — NOT a singleton, registers manually with `GameManager`.
+  **`GameManager` does not exist yet** in this starter — a `Manager` subclass
+  cannot compile until it's added. Used for `...Manager` (e.g. `EnemyManager`,
+  `UIManager`).
 
 ## Interfaces (`Core/Interface/`)
 - `IInitializable` — one-time boot sequence contract: `Priority`,
