@@ -1,7 +1,7 @@
 using UnityEngine;
 using UnityEngine.UI;
 using System.Collections;
-using Slafurry.System.Scene;
+using Slafurry.Systems.Scene;
 
 namespace Slafurry.Utils.UI
 {

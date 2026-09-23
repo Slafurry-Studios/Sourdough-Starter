@@ -1,8 +1,8 @@
-# PROJECT NAME
-One-line pitch of what this project does or what problem it solves.
+# Sourdough-Starter
+Unity 2022.3 URP starter for Slafurry Studios — GameSystem base classes, Drive asset sync, and itch.io deploy included.
 
 <p align="center">
-  <img src="https://github.com/user-attachments/assets/9dee6058-b82a-43b4-ae26-eab6ffe699da" width="100%" alt="PROJECT NAME banner" />
+  <img src="https://github.com/user-attachments/assets/9dee6058-b82a-43b4-ae26-eab6ffe699da" width="100%" alt="Sourdough-Starter banner" />
 </p>
 
 <br>
@@ -38,19 +38,18 @@ Short paragraph explaining the project's purpose, scope, and what makes it worth
 Brief summary of the core architecture pattern used, with a link to the full doc for anyone who wants details.
 
 ```
-Assets/
+Assets/_Game/
 ├── 00_Scripts/
 │   ├── Core/       — base classes & interfaces (Singleton, GameSystem, Manager)
-│   ├── System/     — persistent cross-scene services (Audio, Save, Scene, Localization)
+│   ├── Systems/    — persistent cross-scene services (Audio, Save, Scene, Localization)
 │   ├── Manager/    — per-session gameplay coordinators
-│   ├── Game/       — per-instance controllers & entities
+│   ├── Game/       — per-instance controllers & entities (+ Triggers/)
 │   ├── UI/         — reactive observers & screen coordination
 │   └── Utils/      — generic reusable helpers (GameFeel, extensions)
 ├── 01_Objects/     — prefabs & data, grouped by domain
-├── 02_Art/
-├── 03_Audio/
-├── 04_Scenes/
-└── 05_Settings/
+├── 03_Audio/       — GameAudioMixer + Music/SFX (Drive-synced clips)
+├── 04_Scenes/      — TemplateScene.unity (in Build Settings)
+└── 05_Settings/    — URP, Input
 ```
 
 See [`ARCHITECTURE.md`](./ARCHITECTURE.md) for the full breakdown of base classes, naming conventions, and design decisions.
@@ -60,15 +59,23 @@ See [`ARCHITECTURE.md`](./ARCHITECTURE.md) for the full breakdown of base classe
 ## GETTING STARTED
 
 ### Prerequisites
-- Unity `[version]`
+- Unity `2022.3.62f3` (see `ProjectSettings/ProjectVersion.txt`)
 - Git LFS ([installation guide](https://git-lfs.github.com))
 
 ### Setup
 ```bash
 git lfs install
-git clone [repo-url]
+git clone https://github.com/muhammadzaini213/Sourdough-Starter.git
+cd Sourdough-Starter
+git config core.hooksPath .githooks   # LFS + pre-push Unity compile check
 ```
-Open the project in Unity Hub, let it import, then open the `Boot` scene to start.
+Open the project in Unity Hub, let it import, then open `Assets/_Game/04_Scenes/TemplateScene.unity`.
+
+---
+
+## GITHUB WORKFLOWS
+
+CI/CD covers Google Drive asset sync (`track`/`retrieve`), a **PR compile gate** (`unity-compile`), and Unity builds deployed to itch.io. Setup (secrets/variables) and usage are documented in [`GITHUB_WORKFLOWS.md`](./GITHUB_WORKFLOWS.md).
 
 ---
 
@@ -85,6 +92,14 @@ Open the project in Unity Hub, let it import, then open the `Boot` scene to star
 |---|---|
 | [Role] | [Name] |
 | [Role] | [Name] |
+
+---
+
+## CONTRIBUTING
+
+Contributions are welcome — see [`CONTRIBUTING.md`](./CONTRIBUTING.md) for setup, architecture rules, and PR guidelines.
+
+To report a vulnerability, please email **slafurrystudios@gmail.com** instead of opening a public issue — see [`SECURITY.md`](./SECURITY.md).
 
 ---
 

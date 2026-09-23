@@ -1,5 +1,5 @@
 using System.Collections;
-using Slafurry.System.Pause;
+using Slafurry.Systems.Pause;
 using UnityEngine;
 
 namespace Slafurry.Utils.GameFeel

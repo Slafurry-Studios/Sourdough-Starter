@@ -1,6 +1,6 @@
 using UnityEngine;
 using UnityEngine.UI;
-using Slafurry.System.Audio;
+using Slafurry.Systems.Audio;
 
 namespace Slafurry.Utils.UI
 {

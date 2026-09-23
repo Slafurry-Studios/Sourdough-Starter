@@ -1,6 +1,6 @@
 using UnityEngine;
 using TMPro;
-using Slafurry.System.Localization;
+using Slafurry.Systems.Localization;
 
 namespace Slafurry.UI.Generic
 {
