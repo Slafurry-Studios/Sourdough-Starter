@@ -54,7 +54,8 @@ All configuration is done under **Settings → Secrets and variables → Actions
 2. Select the workflow in the left sidebar.
 3. Click **Run workflow**, pick the branch (`main`) and (for deploy) choose inputs:
    - **platforms**: `All`, `Windows`, `macOS`, or `WebGL`
-   - **release_tag**: optional, e.g. `v1.0.0` — leave empty for a normal build; if set, a GitHub Release with zipped builds is also published
+   - **release_type**: `release`, `beta`, or `alpha` — appended to the version tag, e.g. `v1.2.3-release`, `v1.2.3-beta`, `v1.2.3-alpha`
+   - **release_tag**: optional version number, e.g. `1.2.3` — the `v` prefix and `-{release_type}` suffix are added automatically, so just type `X.X.X`. Leave empty for an unversioned build (no GitHub Release). The last published version is shown as context in the run log
 4. Click **Run workflow** and watch the run log.
 
 `track.yml` also runs on its schedule; `retrieve.yml` and `unity-itchio-deploy.yml` are manual-only. `unity-compile.yml` runs automatically on PRs that touch game/project files.
@@ -69,4 +70,5 @@ All configuration is done under **Settings → Secrets and variables → Actions
 - **Deploy requirements**: the project must have `Assets/Editor/BuildScript.cs` with a `BuildScript.Build` method (already present), Git LFS files checked out, and a valid Unity Personal license (`UNITY_EMAIL`/`UNITY_PASSWORD`).
 - Build artifacts are kept for 7 days on the workflow run; itch.io is the long-term host.
 - First deploy: make sure the itch.io game exists and `ITCH_USER`/`ITCH_GAME` match its URL (`https://<ITCH_USER>.itch.io/<ITCH_GAME>`).
-- **Discord bot context**: before notifying, the deploy workflow builds a changelog (`git log` since the previous release tag, or previous commit → `HEAD` if no tags) and passes it to Gemini so the announcement can highlight what changed.
+- **Discord bot context**: before notifying, the deploy workflow builds a changelog (`git log` since the previous release tag, or previous commit → `HEAD` if no tags) and passes it to Gemini so the announcement can highlight what changed. The GitHub Release notes (when `release_tag` is set) are also written by Gemini from the same commit changelog.
+- **Deploy speedups**: the Unity editor install is cached between runs (`cache-installation: true`) and the Unity Hub auto-update is disabled (`auto-update-hub: false`) so repeated runs skip the big editor download.

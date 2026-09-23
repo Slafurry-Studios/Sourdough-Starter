@@ -13,8 +13,17 @@ on:
           - "Windows"
           - "macOS"
           - "WebGL"
+      release_type:
+        description: "Release type baked into the version tag: release/beta/alpha → v1.2.3-release / v1.2.3-beta / v1.2.3-alpha."
+        required: false
+        type: choice
+        default: "release"
+        options:
+          - "release"
+          - "beta"
+          - "alpha"
       release_tag:
-        description: "Optional release tag, e.g. v1.0.0. Leave empty for normal build."
+        description: "Version number, e.g. 1.2.3. Becomes v1.2.3-{release_type} automatically. Leave empty for an unversioned build."
         required: false
         type: string
         default: ""
@@ -172,6 +181,11 @@ jobs:
           # Ask buildalon to install the module required by
           # the current matrix target, on a matching host OS.
           build-targets: ${{ matrix.target }}
+
+          # Speed: cache the editor install between runs (skips the big download)
+          # and skip re-updating Unity Hub every run.
+          cache-installation: true
+          auto-update-hub: false
 
 
       # ========================================================
@@ -380,6 +394,7 @@ jobs:
 
     outputs:
       version: ${{ steps.version.outputs.value }}
+      previous: ${{ steps.version.outputs.previous }}
 
     steps:
 
@@ -391,18 +406,35 @@ jobs:
         id: version
         shell: bash
         run: |
-          if [ -n "${{ inputs.release_tag }}" ]; then
-            VERSION="${{ inputs.release_tag }}"
+          RAW_TAG="${{ inputs.release_tag }}"
+          RELEASE_TYPE="${{ inputs.release_type }}"
+
+          if [ -n "${RAW_TAG}" ]; then
+            # Normalize to "v1.2.3": the "v" prefix is added automatically
+            # if the user only typed "1.2.3".
+            case "${RAW_TAG}" in
+              v*) VERSION="${RAW_TAG}"   ;;
+              *)  VERSION="v${RAW_TAG}"  ;;
+            esac
+            # Bake the release type into the version:
+            # v1.2.3-release / v1.2.3-beta / v1.2.3-alpha
+            VERSION="${VERSION}-${RELEASE_TYPE}"
           else
             VERSION="${GITHUB_SHA::7}"
           fi
 
           echo "value=${VERSION}" >> "$GITHUB_OUTPUT"
 
+          # Look up the last published version for context (best-effort).
+          PREVIOUS=$(gh api "repos/${{ github.repository }}/releases/latest" \
+            --jq '.tag_name' 2>/dev/null || true)
+          echo "previous=${PREVIOUS}" >> "$GITHUB_OUTPUT"
+
           echo "========================================"
           echo "DEPLOYMENT VERSION"
           echo "========================================"
-          echo "${VERSION}"
+          echo "This run: ${VERSION}"
+          echo "Last run: ${PREVIOUS:-none}"
 
 
       # ========================================================
@@ -569,6 +601,125 @@ jobs:
     steps:
 
       # ========================================================
+      # CHECKOUT (full history for Gemini changelog)
+      # ========================================================
+
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          lfs: false
+
+
+      # ========================================================
+      # GENERATE COMMIT CHANGELOG
+      # ========================================================
+
+      - name: Generate changelog
+        id: changelog
+        shell: bash
+        run: |
+          set -e
+
+          PREV_TAG=$(git describe --tags --abbrev=0 2>/dev/null || true)
+
+          if [ -n "$PREV_TAG" ]; then
+            if [ "$(git rev-parse "${PREV_TAG}^{commit}" 2>/dev/null)" = "$(git rev-parse HEAD)" ]; then
+              PREV_TAG=$(git describe --tags --abbrev=0 "${PREV_TAG}^" 2>/dev/null || true)
+            fi
+          fi
+
+          if [ -n "$PREV_TAG" ]; then
+            RANGE="${PREV_TAG}..HEAD"
+            echo "Changelog range: ${RANGE}"
+          elif [ "$(git rev-list --count HEAD)" -gt 1 ]; then
+            RANGE="HEAD~1..HEAD"
+            echo "Changelog range: ${RANGE} (no previous tag)"
+          else
+            RANGE="HEAD"
+            echo "Changelog range: ${RANGE} (initial commit)"
+          fi
+
+          CHANGELOG=$(git log "$RANGE" --pretty=format:'- %h %s' | head -20)
+
+          if [ -z "$CHANGELOG" ]; then
+            CHANGELOG="- No commit messages available for this range."
+          fi
+
+          echo "Changelog:"
+          echo "$CHANGELOG"
+
+          {
+            echo "text<<CHANGELOG_EOF"
+            echo "$CHANGELOG"
+            echo "CHANGELOG_EOF"
+          } >> "$GITHUB_OUTPUT"
+
+
+      # ========================================================
+      # WRITE RELEASE NOTES WITH GEMINI
+      # ========================================================
+
+      - name: Generate release notes with Gemini
+        id: notes
+
+        env:
+          GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
+          VERSION: ${{ needs.deploy.outputs.version }}
+          CHANGELOG: ${{ steps.changelog.outputs.text }}
+
+        shell: bash
+
+        run: |
+          set -e
+
+          PROMPT="${GEMINI_PERSONA}
+
+          Changelog for release ${VERSION} (commits since the previous release):
+          ${CHANGELOG}
+
+          Write concise GitHub release notes for version ${VERSION}. Use markdown, start with a '## What's Changed' heading, and turn the commits above into a short bulleted list. Briefly highlight the 1-2 most interesting changes; do not invent changes that are not in the changelog.
+          Write the response in the language used in the persona instructions above."
+
+          BODY=$(jq -n \
+            --arg prompt "$PROMPT" \
+            '{
+              contents: [
+                {
+                  parts: [
+                    {
+                      text: $prompt
+                    }
+                  ]
+                }
+              ]
+            }')
+
+          RESPONSE=$(curl -sS -X POST \
+            "https://generativelanguage.googleapis.com/v1beta/models/${GEMINI_MODEL}:generateContent?key=${GEMINI_API_KEY}" \
+            -H "Content-Type: application/json" \
+            -d "$BODY")
+
+          TEXT=$(echo "$RESPONSE" | jq -r \
+            '.candidates[0].content.parts[0].text // empty')
+
+          if [ -z "$TEXT" ]; then
+            echo "Gemini failed."
+            echo ""
+            echo "Raw response:"
+            echo "$RESPONSE"
+
+            TEXT="$CHANGELOG"
+          fi
+
+          {
+            echo "text<<GEMINI_EOF"
+            echo "$TEXT"
+            echo "GEMINI_EOF"
+          } >> "$GITHUB_OUTPUT"
+
+
+      # ========================================================
       # DOWNLOAD WINDOWS
       # ========================================================
 
@@ -615,9 +766,11 @@ jobs:
 
           cd builds
 
-          [ -d Windows ] && zip -r "../${{ inputs.release_tag }}-Windows.zip" Windows
-          [ -d macOS ] && zip -r "../${{ inputs.release_tag }}-macOS.zip" macOS
-          [ -d WebGL ] && zip -r "../${{ inputs.release_tag }}-WebGL.zip" WebGL
+          VERSION="${{ needs.deploy.outputs.version }}"
+
+          [ -d Windows ] && zip -r "../${VERSION}-Windows.zip" Windows
+          [ -d macOS ] && zip -r "../${VERSION}-macOS.zip" macOS
+          [ -d WebGL ] && zip -r "../${VERSION}-WebGL.zip" WebGL
 
 
       # ========================================================
@@ -627,11 +780,11 @@ jobs:
       - name: Create GitHub Release
         uses: softprops/action-gh-release@v2
         with:
-          tag_name: ${{ inputs.release_tag }}
-          name: ${{ inputs.release_tag }}
+          tag_name: ${{ needs.deploy.outputs.version }}
+          name: ${{ needs.deploy.outputs.version }}
+          body: ${{ steps.notes.outputs.text }}
           files: |
             *.zip
-          generate_release_notes: true
           draft: false
           prerelease: false
 
@@ -723,6 +876,7 @@ jobs:
           GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
           VERSION: ${{ needs.deploy.outputs.version }}
           PLATFORMS_INPUT: ${{ inputs.platforms }}
+          RELEASE_TYPE: ${{ inputs.release_type }}
           CHANGELOG: ${{ steps.changelog.outputs.text }}
 
         shell: bash
@@ -736,6 +890,8 @@ jobs:
             PLATFORM_LIST="${PLATFORMS_INPUT}"
           fi
 
+          RELEASE_LABEL="${RELEASE_TYPE:-release}"
+
           if [ -n "${GEMINI_LANGUAGE}" ]; then
             LANGUAGE_INSTRUCTION="Write the response in ${GEMINI_LANGUAGE}."
           else
@@ -747,7 +903,7 @@ jobs:
           Changelog for this build (commits since the previous release/commit):
           ${CHANGELOG}
 
-          Write ONE short paragraph (maximum 3 sentences, no markdown formatting, no surrounding quotation marks) announcing that a new build of the game \"${GAME_DISPLAY_NAME}\" version ${VERSION} has successfully been deployed to ${PLATFORM_LIST} on itch.io.
+          Write ONE short paragraph (maximum 3 sentences, no markdown formatting, no surrounding quotation marks) announcing that a new ${RELEASE_LABEL} build of the game \"${GAME_DISPLAY_NAME}\" version ${VERSION} has successfully been deployed to ${PLATFORM_LIST} on itch.io.
 
           Use the changelog above as context — briefly highlight 1-2 of the most interesting changes if they fit naturally. Do not list every commit.
 
@@ -801,6 +957,8 @@ jobs:
         env:
           DISCORD_WEBHOOK_URL: ${{ secrets.DISCORD_WEBHOOK_URL_DEPLOY }}
           VERSION: ${{ needs.deploy.outputs.version }}
+          PREVIOUS: ${{ needs.deploy.outputs.previous }}
+          RELEASE_TYPE: ${{ inputs.release_type }}
           FLAVOR_TEXT: ${{ steps.flavor.outputs.text }}
           PLATFORMS_INPUT: ${{ inputs.platforms }}
 
@@ -824,6 +982,9 @@ jobs:
             [ "${PLATFORMS_INPUT}" = "WebGL" ] && WEB_STATUS="✅"
           fi
 
+          RELEASE_LABEL="${RELEASE_TYPE:-release}"
+          PREVIOUS_LABEL="${PREVIOUS:-none}"
+
           PAYLOAD=$(jq -n \
             --arg content "$FLAVOR_TEXT" \
             --arg title "${GAME_DISPLAY_NAME} — Build ${VERSION} deployed" \
@@ -831,6 +992,8 @@ jobs:
             --arg win "$WIN_STATUS" \
             --arg mac "$MAC_STATUS" \
             --arg web "$WEB_STATUS" \
+            --arg rel "$RELEASE_LABEL" \
+            --arg prev "$PREVIOUS_LABEL" \
             '{
               embeds: [
                 {
@@ -852,6 +1015,16 @@ jobs:
                     {
                       name: "Web",
                       value: $web,
+                      inline: true
+                    },
+                    {
+                      name: "Release type",
+                      value: $rel,
+                      inline: true
+                    },
+                    {
+                      name: "Last version",
+                      value: $prev,
                       inline: true
                     }
                   ]

@@ -6,7 +6,7 @@ Unity **2022.3.62f3** URP starter (C#). Verify C# with `./scripts/check-compile.
 
 - **`ARCHITECTURE.md`** — folder rules, base classes, lifecycle, naming (System vs Manager vs Controller). Prefer this over README.
 - **`README.md`** — pitch + setup; trees use `_Game/` + `Systems/`; only scene is `TemplateScene.unity`.
-- **`GITHUB_WORKFLOWS.md`** — secrets/vars setup, run steps, changelog for Discord bot.
+- **`GITHUB_WORKFLOWS.md`** — secrets/vars setup, run steps, deploy inputs (`platforms`/`release_type`/`release_tag`), Discord + GitHub Release changelog.
 - Executable wins over docs: `ProjectSettings/ProjectVersion.txt`, `Packages/manifest.json`, `.gitattributes`, `.github/workflows/`.
 
 ## Layout
@@ -69,13 +69,15 @@ env:
 
 Run steps only use `"$NAME"` — **no inline `${{ secrets.* }}`**, no hardcoded values.
 
-**Secrets** (credentials only): `GEMINI_API_KEY`, `GOOGLE_SERVICE_ACCOUNT_JSON_B64`, `DISCORD_WEBHOOK_URL`, `DISCORD_WEBHOOK_URL_DEPLOY`, `UNITY_EMAIL`, `UNITY_PASSWORD`, `BUTLER_API_KEY`, `PR_PAT` (compile, deploy, **retrieve**).
+**Secrets** (credentials only): `GEMINI_API_KEY`, `GOOGLE_SERVICE_ACCOUNT_JSON_B64`, `DISCORD_WEBHOOK_URL`, `DISCORD_WEBHOOK_URL_DEPLOY`, `UNITY_EMAIL`, `UNITY_PASSWORD`, `BUTLER_API_KEY`, `PR_PAT` (**retrieve only** — compile/deploy use the default `GITHUB_TOKEN`).
 
 **Variables** (non-credential): `DRIVE_SPRITE_FOLDER_ID`, `DRIVE_AUDIO_FOLDER_ID`, `GEMINI_MODEL`, `GEMINI_PERSONA`, `GEMINI_LANGUAGE`, `BOT_GIT_USERNAME`, `BOT_GIT_EMAIL`, `ITCH_*`, `GAME_DISPLAY_NAME`, `UNITY_PROJECT_PATH` (deploy, retrieve).
 
 **Retrieve runs a Unity batchmode import after downloading** so new Drive files get generated `.meta` (stable GUID + import settings) — committed inside the asset PR. Requires `UNITY_EMAIL`/`UNITY_PASSWORD` on `retrieve` now.
 
-**Deploy notify** builds a changelog (`git log` since last tag, else `HEAD~1..HEAD`) and passes it to Gemini for the Discord announcement.
+**Deploy inputs** (`unity-itchio-deploy.yml`, manual): `platforms` (All/Windows/macOS/WebGL) · `release_type` (release/beta/alpha) · `release_tag` (type `1.2.3`; the `v` prefix and `-{release_type}` suffix are added **automatically** → `v1.2.3-release` / `v1.2.3-beta` / `v1.2.3-alpha`). Leave `release_tag` empty for an unversioned build (no GitHub Release). The last published version is fetched via `gh api releases/latest` and shown in the log + Discord.
+
+**Deploy changelogs** — two steps build a `git log` changelog (since previous tag, else `HEAD~1..HEAD`): the Discord notification uses it for Gemini **flavor text**; the GitHub Release body is written by **Gemini** from the same commit list. No `generate_release_notes`.
 
 ## Unity / git gotchas
 
