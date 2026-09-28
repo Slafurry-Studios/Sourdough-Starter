@@ -231,10 +231,11 @@ naturally cluster together alphabetically.
 ## Git
 - `.gitattributes` uses the official
   [gitattributes/gitattributes Unity template](https://github.com/gitattributes/gitattributes/blob/master/Unity.gitattributes)
-  (MIT) — handles C# diffing, Unity's YAML merge driver, and LFS for every
-  binary asset type (audio, 3D models, images, video, archives, etc.).
-- **Required**: run `git lfs install` on every machine before cloning, or
-  binary assets will only fetch as LFS pointers instead of actual content.
+  (MIT) — handles C# diffing and Unity's YAML merge driver. Binary asset
+  types (audio, 3D models, images, video, archives, etc.) are marked
+  `binary` (`-diff -merge -text`) and stored as **plain git blobs**.
+- **No Git LFS** — cloning needs nothing beyond `git`. Do not add
+  `filter=lfs` / `lfs: true` back to `.gitattributes` or the workflows.
 
 ---
 

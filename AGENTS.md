@@ -81,7 +81,7 @@ Run steps only use `"$NAME"` — **no inline `${{ secrets.* }}`**, no hardcoded 
 
 ## Unity / git gotchas
 
-- **Git LFS required** (`git lfs install` before clone). `.gitattributes` covers binaries. Working tree may show dirty `_Vendor` LFS files — **do not commit vendor churn**.
+- **No Git LFS.** All binaries are **plain git blobs**; `.gitattributes` marks them `binary` (`-diff -merge -text`). Do not reintroduce `filter=lfs` or `lfs: true` in workflow checkouts. Working tree may show dirty `_Vendor` files — **do not commit vendor churn**.
 - `.gitattributes` sets `merge=unityyamlmerge` for `*.unity`/`*.asset`/etc., but the **driver is not in git config** — Unity YAML conflict merges fail until UnityYAMLMerge is configured.
 - Serialization: Force Text YAML + Visible Meta Files. **Commit `.meta` with every new asset**; never hand-edit GUIDs.
 - Input System only (`activeInputHandler: 2`). Actions: `Assets/_Game/05_Settings/Input/Main Input.inputactions` → generated `Main Input.cs` (regenerate in Unity after editing actions). Legacy `Input.GetKeyDown` in `DIalogHUD` is dead code.
@@ -89,13 +89,13 @@ Run steps only use `"$NAME"` — **no inline `${{ secrets.* }}`**, no hardcoded 
 - `EditorBuildSettings` lists only `Boot` (enabled). Do not assume other scenes are loadable.
 - **Drive bots re-sync from `origin/main` every run**: `retrieve.yml` `rm -rf`s `state/`, `Assets/_Game/02_Art/Sprite`, `Assets/_Game/03_Audio` then restores via `git archive origin/main`. Commit `GameAudioMixer.mixer` (and local state) to `main` before relying on those workflows.
 - **`track` / `retrieve` commit `state/` to `main`** (`[skip ci]`) so `deleted_in_drive` / `retrieve_status` / `downloaded_*` persist. Assets still go `chore/asset` → PR. `core/state.py` must keep retrieve fields when track merges a fresh listing (`scripts/test_state.py`).
-- `core.hooksPath` is **not** committed (local `git config`). Each clone: `git config core.hooksPath .githooks` or pre-push compile will not run; LFS chains via `.githooks/pre-push`.
+- `core.hooksPath` is **not** committed (local `git config`). Each clone: `git config core.hooksPath .githooks` or pre-push compile will not run. `.githooks/` holds only `pre-push`.
 
 ## Verify changes
 
 - **Style only:** `.editorconfig`.
 - **Compile:** `./scripts/check-compile.sh` (fails on `error CS` or non-successful exit). Bypass: `SKIP_UNITY_COMPILE=1`. Override binary: `UNITY_BIN=...`.
-- **Local push gate:** `git config core.hooksPath .githooks` once per clone. `pre-push` runs **Git LFS first**, then `check-compile.sh`.
+- **Local push gate:** `git config core.hooksPath .githooks` once per clone. `pre-push` runs `check-compile.sh`.
 - **CI:** `unity-compile.yml` runs same check on **PRs only** (paths: `Assets/`, `Packages/`, `ProjectSettings/`). Require in branch protection.
 - **Drive tooling:** `python3 scripts/test_state.py` after touching `core/state.py` / `track.py` / `retrieve.py`.
 

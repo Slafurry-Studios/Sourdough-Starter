@@ -6,7 +6,6 @@ Thanks for your interest in improving this project. This document explains how t
 
 1. Fork the repository and clone it:
    ```bash
-   git lfs install
    git clone https://github.com/<your-username>/<repo>.git
    cd <repo>
    git config core.hooksPath .githooks
@@ -20,8 +19,8 @@ Thanks for your interest in improving this project. This document explains how t
 ## Development setup
 
 - **Unity version**: see `ProjectSettings/ProjectVersion.txt` (2022.3 LTS). Use the same major.minor version to avoid serialized asset churn.
-- **Git LFS is required** — `.gitattributes` tracks binaries (png/ttf/audio/models…). Always run `git lfs install` before cloning.
-- **Local hooks**: after clone, `git config core.hooksPath .githooks` enables LFS + a **pre-push Unity compile check**. One-off bypass: `SKIP_UNITY_COMPILE=1 git push` (CI still runs on PRs).
+- **No Git LFS** — binaries (png/ttf/audio/models…) are stored as plain git blobs. `.gitattributes` marks them `binary` so git skips diffs/merges. Never reintroduce `filter=lfs`.
+- **Local hooks**: after clone, `git config core.hooksPath .githooks` enables a **pre-push Unity compile check**. One-off bypass: `SKIP_UNITY_COMPILE=1 git push` (CI still runs on PRs).
 - **Style**: root `.editorconfig` (hints only — not a gate).
 - **No `.asmdef`** — everything compiles into `Assembly-CSharp`. Editor-only code must live under an `Editor/` folder.
 - Read [`ARCHITECTURE.md`](./ARCHITECTURE.md) before touching scripts — it defines folder rules, base classes (`Singleton`/`GameSystem`/`Manager`), lifecycle (`Initialize` vs `PostInitialize`), and naming (System vs Manager vs Controller).
