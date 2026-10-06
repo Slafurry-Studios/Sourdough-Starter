@@ -59,7 +59,7 @@ See [`ARCHITECTURE.md`](./ARCHITECTURE.md) for the full breakdown of base classe
 ## GETTING STARTED
 
 ### Prerequisites
-- Unity `2022.3.62f3` (see `ProjectSettings/ProjectVersion.txt`)
+- Unity `6000.3.25f1` (see `ProjectSettings/ProjectVersion.txt`)
 - Git (no Git LFS — binaries are stored as plain blobs)
 
 ### Setup
