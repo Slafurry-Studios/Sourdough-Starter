@@ -8,7 +8,6 @@ Thanks for your interest in improving this project. This document explains how t
    ```bash
    git clone https://github.com/<your-username>/<repo>.git
    cd <repo>
-   git config core.hooksPath .githooks
    ```
 2. Open the project in **Unity Hub** (version in `ProjectSettings/ProjectVersion.txt`) and let it import.
 3. Create a branch for your change:
@@ -18,9 +17,9 @@ Thanks for your interest in improving this project. This document explains how t
 
 ## Development setup
 
-- **Unity version**: see `ProjectSettings/ProjectVersion.txt` (2022.3 LTS). Use the same major.minor version to avoid serialized asset churn.
+- **Unity version**: see `ProjectSettings/ProjectVersion.txt` (currently Unity 6.3 LTS, `6000.3.25f1`). Use the same major.minor version to avoid serialized asset churn.
 - **No Git LFS** — binaries (png/ttf/audio/models…) are stored as plain git blobs. `.gitattributes` marks them `binary` so git skips diffs/merges. Never reintroduce `filter=lfs`.
-- **Local hooks**: after clone, `git config core.hooksPath .githooks` enables a **pre-push Unity compile check**. One-off bypass: `SKIP_UNITY_COMPILE=1 git push` (CI still runs on PRs).
+- **No git hooks**: the pre-push compile check was removed. Verify compilation yourself (see below); CI still gates PRs.
 - **Style**: root `.editorconfig` (hints only — not a gate).
 - **No `.asmdef`** — everything compiles into `Assembly-CSharp`. Editor-only code must live under an `Editor/` folder.
 - Read [`ARCHITECTURE.md`](./ARCHITECTURE.md) before touching scripts — it defines folder rules, base classes (`Singleton`/`GameSystem`/`Manager`), lifecycle (`Initialize` vs `PostInitialize`), and naming (System vs Manager vs Controller).
@@ -39,7 +38,10 @@ Thanks for your interest in improving this project. This document explains how t
 Catch compile errors headlessly:
 
 ```bash
-./scripts/check-compile.sh
+~/Unity/Hub/Editor/6000.3.25f1/Editor/Unity \
+  -batchmode -nographics -quit \
+  -projectPath "$PWD" -logFile /tmp/unity-compile.log
+grep -n "error CS" /tmp/unity-compile.log   # must print nothing
 ```
 
 CI runs the same batchmode compile on **pull requests** (`unity-compile.yml`) and fails on `error CS`. Play-mode behavior still needs a manual Editor run (`Assets/_Game/04_Scenes/Boot.unity`).
@@ -51,7 +53,7 @@ If you change Input actions, regenerate `Main Input.cs` in the Unity Editor afte
 - Target the `main` branch.
 - Describe **what** changed and **why**.
 - Include screenshots/video for visual changes where relevant.
-- The PR compile check must pass (or run `./scripts/check-compile.sh` locally if CI secrets are unavailable).
+- The PR compile check must pass (or run the batchmode compile above locally if CI secrets are unavailable).
 - One logical change per PR; split unrelated work.
 
 ## Reporting issues

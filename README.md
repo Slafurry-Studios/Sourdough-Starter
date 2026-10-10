@@ -66,7 +66,6 @@ See [`ARCHITECTURE.md`](./ARCHITECTURE.md) for the full breakdown of base classe
 ```bash
 git clone https://github.com/muhammadzaini213/Sourdough-Starter.git
 cd Sourdough-Starter
-git config core.hooksPath .githooks   # pre-push Unity compile check
 ```
 Open the project in Unity Hub, let it import, then open `Assets/_Game/04_Scenes/Boot.unity`.
 

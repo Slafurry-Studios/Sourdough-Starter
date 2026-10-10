@@ -1,6 +1,6 @@
 # AGENTS.md
 
-Unity **2022.3.62f3** URP starter (C#). Verify C# with `./scripts/check-compile.sh` (Unity batchmode) or open the Editor. Style: root **`.editorconfig`** (hints only). CI: GitHub Actions under `.github/workflows/` (PR compile gate `unity-compile` + itch.io deploy + Drive retrieve/track).
+Unity **6000.3.25f1** (Unity 6.3 LTS) URP starter (C#). Verify C# with Unity batchmode (see **Verify changes** — no wrapper script, no git hooks). Style: root **`.editorconfig`** (hints only). CI: GitHub Actions under `.github/workflows/` (PR compile gate `unity-compile` + itch.io deploy + Drive retrieve/track).
 
 ## Sources of truth
 
@@ -15,14 +15,13 @@ Unity **2022.3.62f3** URP starter (C#). Verify C# with `./scripts/check-compile.
 Assets/_Game/          # all game content
   00_Scripts/          # Core, Systems, Manager, Game, UI, Utils
   01_Objects/          # Prefabs/ + Data/ (SO variants)
+  02_Art/Sprite/       # Drive-synced sprites — retrieve.yml wipes + restores this
   03_Audio/            # GameAudioMixer.mixer (+ Music/, SFX/ for Drive clips)
   04_Scenes/           # Boot only (in Build Settings)
   05_Settings/         # URP, Input
 Assets/Editor/         # BuildScript.cs (CI -executeMethod) + GameAssetCreator
 Assets/_Vendor/        # third-party — do not edit
 .github/workflows/     # unity-compile (PR), unity-itchio-deploy, retrieve, track
-.githooks/             # versioned hooks — enable: git config core.hooksPath .githooks
-scripts/check-compile.sh    # shared batchmode compile check
 scripts/test_state.py       # Drive state regressions
 retrieve.py, track.py, core/, state/, requirements.txt  # Drive → assets tooling
 ```
@@ -33,11 +32,11 @@ retrieve.py, track.py, core/, state/, requirements.txt  # Drive → assets tooli
 
 ## Boot / lifecycle (easy to get wrong)
 
-- `Singleton`/`Manager` `Awake` is sealed and auto-calls `LoadingSystem.Instance.Register(this)`. **`LoadingSystem` must exist first** — in the only scene (`Assets/_Game/04_Scenes/Boot.unity`) it sits on its own **`====== LOADING ======`** root GameObject (script GUID `2ba4b0833086a19a0b6ff4653a00344a`); do not remove it. New systems attach to the **`====== SYSTEM ======`** root (or their own root), alongside `SceneLoader`, `SaveSystem`, `InputHub`, `PauseSystem`, `LocalizationSystem`.
+- `Singleton`/`Manager` `Awake` is private and auto-calls `LoadingSystem.Instance.Register(this)`. **`LoadingSystem` must exist first** — in the only scene (`Assets/_Game/04_Scenes/Boot.unity`) it sits on its own **`====== LOADING ======`** root GameObject (script GUID `2ba4b0833086a19a0b6ff4653a00344a`); do not remove it. New systems attach to the **`====== SYSTEM ======`** root (or their own root), alongside `SceneLoader`, `SaveSystem`, `InputHub`, `PauseSystem`, `LocalizationSystem`.
 - `Initialize()` = internal setup only (no other-object refs). Cross-object wiring only in `PostInitialize()`. Avoid `Start()` (guard with `_isReady` if unavoidable).
 - `IInitializable.Priority` orders boot (lower first). Late registrants after boot get a one-frame delayed batch (`LoadingSystem`).
 - Base class: cross-scene singleton → `GameSystem<T>`; scene-bound singleton → `LocalSingleton<T>`; session coordinator → `Manager` (registers with `GameManager` in `PostInitialize` via abstract `RegisterToGameManager`/`OnPostInitialize`).
-- **`GameManager` does not exist** — `Manager.cs` and ARCHITECTURE still describe it; **any `Manager` subclass will not compile** until you add one (or drop the abstract hooks).
+- **`GameManager` does not exist** — `Manager.cs` and ARCHITECTURE still describe it; **any `Manager` subclass will not compile** until you add one (or drop the abstract hooks). No subclasses exist today.
 - `BootstrapLoader` (Systems/Scene) is optional: wire `systemsToWaitFor` + `targetSceneName` if you add a boot scene. Default `targetSceneName` is `"MainMenu"` (not in Build Settings).
 
 ## Static facades (prefer over `.Instance` chains)
@@ -49,9 +48,9 @@ retrieve.py, track.py, core/, state/, requirements.txt  # Drive → assets tooli
 - Linear volume → dB via `Mathf.Log10(x) * 20` before `AudioMixer.SetFloat`.
 - `GameFeel` is a **MonoBehaviour**, not a static facade.
 
-## GitHub Actions — workflows use `env:` block exclusively
+## GitHub Actions — config lives in workflow-level `env:`
 
-Both `track.yml` and `retrieve.yml` declare **all** config in a workflow-level `env:` block:
+All four workflows declare config in a workflow-level `env:` block; `run:` steps read `"$NAME"` only, never hardcoded values.
 
 ```yaml
 env:
@@ -67,11 +66,11 @@ env:
   UNITY_EMAIL / UNITY_PASSWORD                            # retrieve uses them too (meta import)
 ```
 
-Run steps only use `"$NAME"` — **no inline `${{ secrets.* }}`**, no hardcoded values.
+`secrets.*` still appears inline in **action `with:` inputs** (Unity license activation, Butler upload) and in **failure-notify step `env:`** blocks — that is intentional, not drift.
 
 **Secrets** (credentials only): `GEMINI_API_KEY`, `GOOGLE_SERVICE_ACCOUNT_JSON_B64`, `DISCORD_WEBHOOK_URL`, `DISCORD_WEBHOOK_URL_DEPLOY`, `UNITY_EMAIL`, `UNITY_PASSWORD`, `BUTLER_API_KEY`, `PR_PAT` (**retrieve only** — compile/deploy use the default `GITHUB_TOKEN`).
 
-**Variables** (non-credential): `DRIVE_SPRITE_FOLDER_ID`, `DRIVE_AUDIO_FOLDER_ID`, `GEMINI_MODEL`, `GEMINI_PERSONA`, `GEMINI_LANGUAGE`, `BOT_GIT_USERNAME`, `BOT_GIT_EMAIL`, `ITCH_*`, `GAME_DISPLAY_NAME`, `UNITY_PROJECT_PATH` (deploy, retrieve).
+**Variables** (non-credential): `DRIVE_SPRITE_FOLDER_ID`, `DRIVE_AUDIO_FOLDER_ID`, `GEMINI_MODEL`, `GEMINI_PERSONA`, `GEMINI_LANGUAGE`, `BOT_GIT_USERNAME`, `BOT_GIT_EMAIL`, `ITCH_*`, `GAME_DISPLAY_NAME`, `UNITY_PROJECT_PATH` (deploy, retrieve, compile).
 
 **Retrieve runs a Unity batchmode import after downloading** so new Drive files get generated `.meta` (stable GUID + import settings) — committed inside the asset PR. Requires `UNITY_EMAIL`/`UNITY_PASSWORD` on `retrieve` now.
 
@@ -87,24 +86,24 @@ Run steps only use `"$NAME"` — **no inline `${{ secrets.* }}`**, no hardcoded 
 - Input System only (`activeInputHandler: 2`). Actions: `Assets/_Game/05_Settings/Input/Main Input.inputactions` → generated `Main Input.cs` (regenerate in Unity after editing actions). Legacy `Input.GetKeyDown` in `DIalogHUD` is dead code.
 - Editor menu: **Slafurry → Game Data** (GameAssetCreator). Types for that window use `[GameAssetCreator(category, displayName, order)]`; other SOs use `[CreateAssetMenu]`.
 - `EditorBuildSettings` lists only `Boot` (enabled). Do not assume other scenes are loadable.
+- `*.csproj` / `*.sln` are Editor-generated (`Assembly-CSharp.csproj` is gitignored) — never hand-edit or commit them.
 - **Drive bots re-sync from `origin/main` every run**: `retrieve.yml` `rm -rf`s `state/`, `Assets/_Game/02_Art/Sprite`, `Assets/_Game/03_Audio` then restores via `git archive origin/main`. Commit `GameAudioMixer.mixer` (and local state) to `main` before relying on those workflows.
 - **`track` / `retrieve` commit `state/` to `main`** (`[skip ci]`) so `deleted_in_drive` / `retrieve_status` / `downloaded_*` persist. Assets still go `chore/asset` → PR. `core/state.py` must keep retrieve fields when track merges a fresh listing (`scripts/test_state.py`).
-- `core.hooksPath` is **not** committed (local `git config`). Each clone: `git config core.hooksPath .githooks` or pre-push compile will not run. `.githooks/` holds only `pre-push`.
+- **No git hooks.** `.githooks/pre-push` and `scripts/check-compile.sh` were removed deliberately — do not recreate them; local verification is the raw batchmode command below.
 
 ## Verify changes
 
 - **Style only:** `.editorconfig`.
-- **Compile:** `./scripts/check-compile.sh` (fails on `error CS` or non-successful exit). Bypass: `SKIP_UNITY_COMPILE=1`. Override binary: `UNITY_BIN=...`.
-- **Local push gate:** `git config core.hooksPath .githooks` once per clone. `pre-push` runs `check-compile.sh`.
-- **CI:** `unity-compile.yml` runs same check on **PRs only** (paths: `Assets/`, `Packages/`, `ProjectSettings/`). Require in branch protection.
-- **Drive tooling:** `python3 scripts/test_state.py` after touching `core/state.py` / `track.py` / `retrieve.py`.
+- **Compile:** run Unity batchmode directly. Pass = exit 0, log contains `Exiting batchmode successfully`, and no `error CS` lines. (Editor path is not in the repo — read it from `ProjectSettings/ProjectVersion.txt` / your Unity Hub install.)
+- **CI:** `unity-compile.yml` runs the same batchmode compile + `error CS` grep on **PRs only** (paths: `Assets/`, `Packages/`, `ProjectSettings/`, the workflow file). Require in branch protection. CI installs the editor from `ProjectVersion.txt` — no version pin there.
+- **Drive tooling:** `pip install -r requirements.txt`, then `python3 scripts/test_state.py` after touching `core/state.py` / `track.py` / `retrieve.py` (state tests are dependency-free and pass as-is).
 
 ```bash
-./scripts/check-compile.sh
-# or
-~/Unity/Hub/Editor/2022.3.62f3/Editor/Unity \
+~/Unity/Hub/Editor/6000.3.25f1/Editor/Unity \
   -batchmode -nographics -quit \
   -projectPath "$PWD" -logFile /tmp/unity-compile.log
+grep -n "error CS" /tmp/unity-compile.log
+grep -q "Exiting batchmode successfully" /tmp/unity-compile.log && echo OK
 ```
 
 Prefer this (or opening the Editor) after any C# change. Play-mode behavior still needs a manual Editor run (`Boot`).
