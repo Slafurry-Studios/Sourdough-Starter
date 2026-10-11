@@ -11,14 +11,14 @@ namespace Slafurry.Interaction
         [SerializeField] private UnityEvent onInteract;
 
         [Header("Limit")]
-        [Tooltip("Berapa kali interaksi ini boleh dipicu. Set 0 atau negatif = tanpa limit (bisa dipakai terus-menerus).")]
+        [Tooltip("How many times this interaction may be triggered. Set 0 or negative = no limit (can be used repeatedly).")]
         [SerializeField] private int maxInteractions = 1;
 
-        [Tooltip("Kalau limit sudah tercapai, apakah object ini otomatis di-nonaktifkan (SetActive(false))? Kalau tidak, object tetap ada tapi Interact() diam saja.")]
+        [Tooltip("When the limit is reached, whether this object is automatically deactivated (SetActive(false))? If not, the object stays but Interact() does nothing.")]
         [SerializeField] private bool disableWhenLimitReached = false;
 
-        [Header("Events Tambahan (opsional)")]
-        [Tooltip("Dipicu sekali saja, tepat saat limit interaksi baru saja tercapai.")]
+        [Header("Additional Events (optional)")]
+        [Tooltip("Fires only once, right when the interaction limit has just been reached.")]
         [SerializeField] private UnityEvent onLimitReached;
 
         public string Prompt => prompt;
@@ -45,8 +45,8 @@ namespace Slafurry.Interaction
         }
 
         /// <summary>
-        /// Kurangi hitungan interaksi sebanyak 1 (untuk quit/kalah dari mini-game).
-        /// Tidak akan turun di bawah 0.
+        /// Decrease the interaction count by 1 (for quit/losing a mini-game).
+        /// Will not go below 0.
         /// </summary>
         public void DecrementCount()
         {
@@ -54,8 +54,8 @@ namespace Slafurry.Interaction
         }
 
         /// <summary>
-        /// Reset hitungan interaksi, kalau butuh object ini bisa dipakai ulang lagi
-        /// (misal setelah reset level / checkpoint).
+        /// Reset the interaction count, use when this object needs to be reusable
+        /// (e.g. after level reset / checkpoint).
         /// </summary>
         public void ResetInteractionCount()
         {

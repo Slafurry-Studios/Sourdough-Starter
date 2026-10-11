@@ -15,7 +15,7 @@ namespace Slafurry.Systems.Audio
         public static void StopMusic(float fade = -1f)
             => AudioSystem.Music.StopMusic(fade);
 
-        // fadeIn/fadeOut: -1f (default) = pakai setting per-effect dari SFXEffect, isi manual untuk override
+        // fadeIn/fadeOut: -1f (default) = use the per-effect setting from SFXEffect, set manually to override
         public static void PlaySFX2D(string category, string effect, bool loop = false, float fadeIn = -1f)
             => AudioSystem.SFX.PlaySFX2D(category, effect, loop, fadeIn);
 

@@ -12,20 +12,20 @@ public class SFXEffect
     public int maxSimultaneous = 3;
 
     [Header("Fade")]
-    [Tooltip("Durasi fade-in default (detik) saat efek ini diputar. 0 = langsung full volume.")]
+    [Tooltip("Default fade-in duration (seconds) when this effect plays. 0 = instant full volume.")]
     [Range(0f, 5f)]
     public float fadeIn = 0f;
-    [Tooltip("Durasi fade-out default (detik) saat efek ini dihentikan. 0 = langsung berhenti.")]
+    [Tooltip("Default fade-out duration (seconds) when this effect stops. 0 = instant stop.")]
     [Range(0f, 5f)]
     public float fadeOut = 0f;
 
-    [Header("Jarak (dipakai di PlaySFX3D)")]
-    [Tooltip("Kalau dicentang, suara cuma berubah VOLUME berdasarkan jarak, tanpa panning kiri/kanan. Cocok buat game 2D/top-down.")]
+    [Header("Distance (used in PlaySFX3D)")]
+    [Tooltip("When checked, sound only changes VOLUME with distance, without left/right panning. Suited for 2D/top-down games.")]
     public bool distanceOnlyNoPanning = true;
     public AudioRolloffMode rolloffMode = AudioRolloffMode.Linear;
-    [Tooltip("Jarak di bawah ini volume full 100%.")]
+    [Tooltip("Below this distance the volume is full 100%.")]
     public float minDistance = 1f;
-    [Tooltip("Jarak di atas ini suara sudah tidak terdengar sama sekali.")]
+    [Tooltip("Beyond this distance the sound is no longer audible at all.")]
     public float maxDistance = 15f;
 }
 

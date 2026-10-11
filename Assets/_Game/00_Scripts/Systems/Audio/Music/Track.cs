@@ -12,13 +12,13 @@ public struct MusicTrack
 {
     public string trackName;
     public AudioClip clip;
-    [Tooltip("Clip intro yang diputar sekali sebelum clip utama (loop). Kosongkan kalau tidak ada intro.")]
+    [Tooltip("Intro clip played once before the main clip (loop). Leave empty if there is no intro.")]
     public AudioClip introClip;
     [Range(0f, 20f)]
     public float volume;
-    [Tooltip("Durasi fade in saat track ini mulai diputar.")]
+    [Tooltip("Fade in duration when this track starts playing.")]
     [SerializeField] private float fadeIn;
-    [Tooltip("Durasi fade out saat track ini berhenti atau berganti.")]
+    [Tooltip("Fade out duration when this track stops or changes.")]
     [SerializeField] private float fadeOut;
 
     public float FadeIn => fadeIn > 0f ? fadeIn : 1f;

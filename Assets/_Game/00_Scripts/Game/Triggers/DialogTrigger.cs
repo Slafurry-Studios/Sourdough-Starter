@@ -23,7 +23,7 @@ public class DialogTrigger : BaseTrigger
     {
         if (!CanTrigger()) return;
         if (bucket == null || dialogHUD == null) return;
-        if (dialogHUD.IsBusy) return; // opsional: cegah numpuk dialog trigger lain
+        if (dialogHUD.IsBusy) return; // optional: prevent other dialog triggers from stacking
 
         AddTriggerCount();
         dialogHUD.SetLineEvents(onLineComplete);

@@ -40,7 +40,7 @@ namespace Slafurry.Systems.InputHub
             remove => InputHub.Instance.OnInteractReleased -= value;
         }
 
-        // --- Fitur baru: kontrol on/off ---
+        // --- New feature: on/off control ---
         public static bool IsInputEnabled => InputHub.Instance.IsInputEnabled;
 
         public static void EnableInput() => InputHub.Instance.EnableInput();
@@ -107,8 +107,8 @@ namespace Slafurry.Systems.InputHub
         {
             if (!IsInputEnabled) return;
 
-            // Pastikan state gerak ter-reset sebelum dimatikan
-            // (biar player nggak "nyangkut" jalan terus)
+            // Make sure movement state resets before disabling
+            // (so the player does not stay "stuck" walking)
             if (_moveAction.IsPressed())
                 OnMoveChanged?.Invoke(Vector2.zero);
 
