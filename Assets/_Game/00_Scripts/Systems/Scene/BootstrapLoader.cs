@@ -14,7 +14,7 @@ namespace Slafurry.Systems.Bootstrap
     {
         [Header("Target")]
         [Tooltip("Name of the scene to load once all systems are ready.")]
-        [SerializeField] private string targetSceneName = "MainMenu";
+        [SerializeField] private SceneReference targetScene;
 
         [Header("Systems To Wait For")]
         [Tooltip("References to all GameSystems that must be ready before changing scene. " +
@@ -59,15 +59,15 @@ namespace Slafurry.Systems.Bootstrap
             if (minimumDelay > 0f)
                 yield return new WaitForSecondsRealtime(minimumDelay);
 
-            Debug.Log($"[BootstrapLoader] All systems ready. Moving to scene '{targetSceneName}'.");
+            Debug.Log($"[BootstrapLoader] All systems ready. Moving to scene '{targetScene}'.");
 
-            if (string.IsNullOrEmpty(targetSceneName))
+            if (targetScene != null)
             {
-                Debug.LogError("[BootstrapLoader] targetSceneName is empty! Set it in the inspector.");
+                Debug.LogError("[BootstrapLoader] targetScene is empty! Set it in the inspector.");
                 yield break;
             }
 
-            SceneSystem.Load(targetSceneName);
+            SceneSystem.Load(targetScene);
         }
     }
 

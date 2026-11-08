@@ -1,7 +1,7 @@
 using UnityEngine;
 using UnityEngine.Events;
 
-public class DetectArea : BaseTrigger
+public class AreaTrigger : BaseTrigger
 {
     [Header("Detection")]
     [SerializeField] private string targetTag = "Player";

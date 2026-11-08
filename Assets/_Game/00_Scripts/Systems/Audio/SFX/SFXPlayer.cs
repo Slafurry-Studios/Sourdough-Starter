@@ -64,7 +64,7 @@ namespace Slafurry.Systems.Audio
 
         private AudioSource GetAvailableSource(CategoryPool pool)
         {
-            // 1) find a source that is truly idle
+            // 1) find truly idle source
             foreach (var source in pool.Sources)
             {
                 if (!source.isPlaying)
@@ -76,9 +76,9 @@ namespace Slafurry.Systems.Audio
                 }
             }
 
-            // 2) all busy -> prefer stealing a source that is NOT fading,
-            //    so a running fade-out is not force-cut midway.
-            //    A fading source is only stolen if there is really no other choice (step 3).
+            // 2) all busy -> prioritize stealing a source that is NOT fading,
+            //    so running fade-outs are not abruptly cut off.
+            //    Fading sources are only stolen if desperate (step 3).
             AudioSource nonFadingCandidate = null;
             foreach (var source in pool.Sources)
             {
@@ -89,7 +89,7 @@ namespace Slafurry.Systems.Audio
                 }
             }
 
-            // 3) fallback: every source is fading too -> forced back to old round-robin
+            // 3) fallback: all sources fading too -> forced to use old round-robin
             AudioSource stolen = nonFadingCandidate != null ? nonFadingCandidate : pool.Sources[pool.OldestIndex];
 
             StopFadeIfAny(pool, stolen);
@@ -120,11 +120,11 @@ namespace Slafurry.Systems.Audio
         }
 
         // ========================= FADE CORE =========================
-        // Interpolation is done in the decibel (dB) domain, not linear.
-        // This matters because SFXEffect.volume can be > 1 (boost/gain, can go up to clipping) —
-        // a linear/quadratic fade in the amplitude domain "flatlines" once the signal clips,
-        // so it feels like it stops midway. A fade in the dB domain stays smooth
-        // no matter how large the target volume is.
+        // Interpolation is performed in the decibel (dB) domain, not linear.
+        // This is important because SFXEffect.volume can be > 1 (boost/gain, up to clipping) —
+        // linear/quadratic fades in the amplitude domain flatline once the signal clips,
+        // feeling like they stop midway. Fades in the dB domain stay smooth
+        // regardless of the target volume magnitude.
         private const float MinDecibel = -80f;
 
         private static float LinearToDecibel(float linear)
@@ -164,12 +164,12 @@ namespace Slafurry.Systems.Audio
         }
 
         // ========================= 3D =========================
-        // fadeIn < 0  => use the default from SFXEffect.fadeIn
-        // Volume automatically follows the distance to the AudioListener based on
+        // fadeIn < 0 => use default from SFXEffect.fadeIn
+        // Volume automatically follows distance to AudioListener based on
         // minDistance/maxDistance/rolloffMode in SFXEffect. If
-        // effect.distanceOnlyNoPanning is true, the sound will not pan
-        // left/right (spread 360°) — suited for 2D/top-down games that only
-        // need "quieter when farther", not a full 3D effect.
+        // effect.distanceOnlyNoPanning is true, sound will not pan
+        // left/right (360° spread) — good for 2D/top-down games that only
+        // need distance attenuation, not full 3D positioning.
         public void PlaySFX3D(string categoryName, string effectName, Vector3 pos, bool loop = false, float fadeIn = -1f)
         {
             if (!TryPrepare(categoryName, effectName, out var pool, out var effect, out var clip))
@@ -192,7 +192,7 @@ namespace Slafurry.Systems.Audio
         }
 
         // ========================= 2D =========================
-        // fadeIn < 0  => use the default from SFXEffect.fadeIn
+        // fadeIn < 0 => use default from SFXEffect.fadeIn
         public void PlaySFX2D(string categoryName, string effectName, bool loop = false, float fadeIn = -1f)
         {
             if (!TryPrepare(categoryName, effectName, out var pool, out var effect, out var clip))
@@ -212,8 +212,8 @@ namespace Slafurry.Systems.Audio
 
         private void StartPlaybackWithFade(CategoryPool pool, AudioSource source, float targetVolume, float fadeIn)
         {
-            // Each time this source starts a new play, invalidate the auto tail-fade
-            // from the previous play (if any) so it does not wrongly fade the new audio.
+            // Whenever this source starts playing anew, invalidate auto tail-fade
+            // from previous play (if any) to avoid incorrectly fading the new audio.
             pool.PlayTokens[source] = pool.PlayTokens.TryGetValue(source, out var v) ? v + 1 : 1;
 
             if (fadeIn > 0f)
@@ -229,9 +229,9 @@ namespace Slafurry.Systems.Audio
             }
         }
 
-        // Schedule an automatic fade-out at the tail of the clip (no manual Stop call needed).
-        // This fixes the click at the end of clips that used to play without a fade
-        // because the caller forgot / never called StopSFX.
+        // Schedule automatic fade-out at clip tail (no manual Stop call needed).
+        // This fixes clicks at clip ends that previously played without fade
+        // because the caller forgot/never called StopSFX.
         private void ScheduleAutoTailFade(CategoryPool pool, AudioSource source, AudioClip clip, float fadeOutDuration)
         {
             if (fadeOutDuration <= 0f || clip == null || source.loop)
@@ -249,7 +249,7 @@ namespace Slafurry.Systems.Audio
         {
             yield return new WaitForSeconds(delay);
 
-            // If the source was already reused for another play before its time, cancel.
+            // If source was reused for another play prematurely, cancel.
             if (!pool.PlayTokens.TryGetValue(source, out var currentToken) || currentToken != token)
                 yield break;
 
@@ -258,7 +258,7 @@ namespace Slafurry.Systems.Audio
         }
 
         // ========================= STOP =========================
-        // fadeOut < 0  => use the per-effect default from SFXEffect.fadeOut
+        // fadeOut < 0 => use per-effect default from SFXEffect.fadeOut
         public void StopAllSFX(float fadeOut = -1f)
         {
             foreach (var kvp in _pools)
@@ -339,9 +339,9 @@ namespace Slafurry.Systems.Audio
 
             StopFadeIfAny(pool, source);
 
-            // If the clip does not loop, do not request a fade longer than the clip remainder —
-            // if forced, the audio runs out before the fade reaches 0,
-            // which sounds like a sudden cut instead of a fade.
+            // If clip does not loop, don't request fade longer than remaining clip —
+            // if forced, audio ends before fade reaches 0,
+            // sounding like an abrupt cut instead of a fade.
             if (fadeOut > 0f && !source.loop && source.clip != null)
             {
                 float pitch = Mathf.Max(Mathf.Abs(source.pitch), 0.01f);
