@@ -1,4 +1,3 @@
-using Slafurry.Utils.Attributes;
 using UnityEngine;
 
 
@@ -7,7 +6,7 @@ public class SFXEffect
 {
     public string groupID;
     public AudioClip[] clips;
-    [Range(0f, 10f)]
+    [Range(0f, 1f)]
     public float volume = 1f;
     public int maxSimultaneous = 3;
 
@@ -20,19 +19,19 @@ public class SFXEffect
     public float fadeOut = 0f;
 
     [Header("Distance (used in PlaySFX3D)")]
-    [Tooltip("When checked, sound only changes VOLUME with distance, without left/right panning. Suited for 2D/top-down games.")]
+    [Tooltip("If checked, sound only changes VOLUME based on distance, without left/right panning. Suitable for 2D/top-down games.")]
     public bool distanceOnlyNoPanning = true;
     public AudioRolloffMode rolloffMode = AudioRolloffMode.Linear;
-    [Tooltip("Below this distance the volume is full 100%.")]
+    [Tooltip("Below this distance, volume is 100%.")]
     public float minDistance = 1f;
-    [Tooltip("Beyond this distance the sound is no longer audible at all.")]
+    [Tooltip("Above this distance, sound is completely inaudible.")]
     public float maxDistance = 15f;
 }
 
 namespace Slafurry.Systems.Audio
 {
 
-    [GameAssetCreator("Audio/SFX", "SFX Category", order: 2)]
+    [CreateAssetMenu(fileName = "SFX Category", menuName = "Audio/SFX Category")]
     public class SFXCategory : ScriptableObject
     {
         public string categoryName;
